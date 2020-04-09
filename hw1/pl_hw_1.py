@@ -6,7 +6,10 @@
 TODO:
 * spaces between digits
 	  1 0 + 100 - 1 0  
-
+* handle
+    - multiplication
+    - division
+    - exponentiation
 '''
 
 # Token types
@@ -36,19 +39,20 @@ class Token(object):
 
 
 
-class Interpreter(object):
+    
+class Lexer(object):
 
     #constructor
     def __init__(self, user_input):
-        print("1. " + user_input)
         self.user_input = user_input   # client string input, e.g. "3+5", "12 - 5"
         self.index = 0                 # self.index is an index into self.text
-        self.current_token = None      # current token instance
         self.current_character = self.user_input[self.index]
-        print("2. " + self.current_character)
+        
+        print("1. " + self.current_character)
+        
         
     def error(self):
-        raise Exception('Error parsing input')
+        raise Exception('INVALID CHARACTER!')
 
         
     def checkIfOperator(self, char):
@@ -79,8 +83,7 @@ class Interpreter(object):
             number += self.current_character
             self.update_current_character()
         return int(number)
-    
-        
+       
         
     # Lexical analyzer: breaks a sentence into tokens one at a time
     # returns next token in input
@@ -110,7 +113,19 @@ class Interpreter(object):
 
         return Token(EOF, None)
      
-        
+
+
+class Interpreter(object):
+
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.current_token = self.lexer.get_next_token 
+        # set current token to the first token taken from the input
+   
+   
+    def error(self):
+        raise Exception('INVALID SYNTAX!')
+
         
     def eat(self, token_type):
         # compare the current token type with the passed token
@@ -118,7 +133,7 @@ class Interpreter(object):
         # and assign the next token to the self.current_token,
         # otherwise raise an exception.
         if self.current_token.type == token_type:
-            self.current_token = self.get_next_token()
+            self.current_token = self.lexer.get_next_token()
         else:
             self.error()
 
@@ -138,7 +153,7 @@ class Interpreter(object):
         
         # set current token to the first token taken from the input
         # we expect the first token to be an integer
-        self.current_token = self.get_next_token()
+        self.current_token = self.lexer.get_next_token()
         result = self.current_token.value
         self.eat(INTEGER)
         print(result)
@@ -173,11 +188,11 @@ def main():
             break
         if not user_input:
             continue
-            
-        interpreter = Interpreter(user_input)
-        print("3. " + interpreter.current_character)
-        
+
+        lexer = Lexer(user_input)    
+        interpreter = Interpreter(lexer)
         result = interpreter.expr()
+        print("=======")
         print(result)
 
 
