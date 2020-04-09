@@ -1,6 +1,12 @@
 '''
 1. lexer: to turn the input of characters into a stream of tokens
-2. 
+2. parse: to recognize phrases in the stream of tokens 
+3. interpreter: to execute parse input
+
+TODO:
+* spaces between digits
+	  1 0 + 100 - 1 0  
+
 '''
 
 # Token types
@@ -70,12 +76,8 @@ class Interpreter(object):
     # to get multiple integers in the input
         number = ''
         while self.current_character is not None and self.current_character.isdigit():
-            print("3b. " + self.current_character)
             number += self.current_character
             self.update_current_character()
-            print("3c. " + number)
-
-
         return int(number)
     
         
@@ -122,43 +124,43 @@ class Interpreter(object):
 
     def expr(self):
         """
-        i. verifies that the sequence of tokens does indeed correspond to the expected sequence of tokens
+        i. PARSING
+            syntax analysis
+            verifies that the sequence of tokens does indeed correspond to the expected sequence of tokens
             expr -> INTEGER OP INTEGER
             find the structure in the flat stream of tokens it gets from the lexer 
             tries to find a sequence of tokens: integer followed by a plus sign followed by an integer
-        ii. After it’s successfully confirmed the structure, it generates the result
-        
+        ii. INTERPRETING
+            After it’s successfully confirmed the structure, it generates the result
+
+        parsing and interpreting done hand in hand    
         """
         
         # set current token to the first token taken from the input
+        # we expect the first token to be an integer
         self.current_token = self.get_next_token()
-        print(self.current_token)
-        
-        # we expect the current token to be an integer
-        left = self.current_token
+        result = self.current_token.value
         self.eat(INTEGER)
+        print(result)
 
+        while self.current_token.type in (PLUS, MINUS):
         # we expect the current token to be an operator
-        op = self.current_token
-        if op.type == PLUS:
-            self.eat(PLUS)
-        else:
-            self.eat(MINUS)
-            
-            
-        # we expect the current token to be an integer
-        right = self.current_token
-        self.eat(INTEGER)
-        # after the above call the self.current_token is set to EOF token
+            op = self.current_token
 
-        # at this point INTEGER PLUS INTEGER sequence of tokens
-        # has been successfully found and the method can just
-        # return the result of adding two integers, thus
-        # effectively interpreting client input
-        if op.type == PLUS:
-            result = left.value + right.value
-        else:
-            result = left.value - right.value        
+            if op.type == PLUS:
+                self.eat(PLUS)
+                # we expect the next token to be an integer
+                right = self.current_token.value
+                self.eat(INTEGER)
+                result = result + right
+            else:
+                self.eat(MINUS)
+                # we expect the next token to be an integer
+                right = self.current_token.value
+                self.eat(INTEGER)
+                result = result - right
+
+        # after the above call the self.current_token is set to EOF token
         
         return result
 
