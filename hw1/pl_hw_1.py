@@ -1,11 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-
 '''
-Only single digit integers are allowed in the input
-The only arithmetic operation supported at the moment is addition
-
 1. lexer: to turn the input of characters into a stream of tokens
 2. 
 '''
@@ -15,19 +8,18 @@ The only arithmetic operation supported at the moment is addition
 INTEGER, PLUS, MINUS, EOF = 'INTEGER', 'PLUS', 'MINUS', 'EOF'
 
 
+
 class Token(object):
     
-    #constructor
+    # constructor
     def __init__(self, type, value):
         # token type: INTEGER, PLUS, MINUS or EOF
         self.type = type
         # token value: 0, 1, 2. 3, 4, 5, 6, 7, 8, 9, '+', or None
         self.value = value
 
-    def __str__(self):
-        """String representation of the class instance.
-        Examples: Token(INTEGER, 3), Token(PLUS '+') """
-        
+    # to print objects as string: Token(INTEGER, 3), Token(PLUS '+')    
+    def __str__(self): 
         return 'Token({type}, {value})'.format(
             type=self.type,
             value=repr(self.value)
@@ -41,15 +33,13 @@ class Token(object):
 class Interpreter(object):
 
     #constructor
-    def __init__(self, text):
-        # client string input, e.g. "3+5", "12 - 5"
-        self.text = text
-        # self.pos is an index into self.text
-        self.position = 0
-        # current token instance
-        self.current_token = None
-        self.current_character = self.text[self.position]
-
+    def __init__(self, user_input):
+        print("1. " + user_input)
+        self.user_input = user_input   # client string input, e.g. "3+5", "12 - 5"
+        self.index = 0                 # self.index is an index into self.text
+        self.current_token = None      # current token instance
+        self.current_character = self.user_input[self.index]
+        print("2. " + self.current_character)
         
     def error(self):
         raise Exception('Error parsing input')
@@ -61,55 +51,65 @@ class Interpreter(object):
         return False  
     
     
-    # Lexical analyzer: breaks a sentence into tokens one at a time    
-    def get_next_token(self):
-        
-        user_input = self.text
-        
-        # remove extra white spaces in input
-        user_input = user_input.replace(" ", "")
+    def update_current_character(self):
+        self.index += 1
         
         # check for end of user input
-        if self.position > len(user_input)-1:
-            return Token(EOF, None)
+        if self.index > len(self.user_input)-1:
+            self.current_character = None
+        else:
+            self.current_character = self.user_input[self.index]
 
-        # get a character and decide what token to create
-        current_char = text[self.pos]
-        self.pos += 1
-        print("1" + current_char)
-        print("2" + text[self.pos])
-        current_char = text[self.pos]
-        
-        while current_char.isdigit():
-            print(">>" + current_char)
-            self.pos += 1
-            current_char += text[self.pos]
+    
+    def remove_white_spaces(self):
+        while self.current_character is not None and self.current_character.isspace():
+            self.update_current_character()
             
-        
-        
             
-        # if the character is a digit then convert it to
-        # integer, create an INTEGER token, increment self.pos
-        # index to point to the next character after the digit,
-        # and return the INTEGER token
-        if current_char.isdigit():
-            token = Token(INTEGER, int(current_char))
-            self.pos += 1
-            return token
+    def get_integer_input(self):
+    # to get multiple integers in the input
+        number = ''
+        while self.current_character is not None and self.current_character.isdigit():
+            print("3b. " + self.current_character)
+            number += self.current_character
+            self.update_current_character()
+            print("3c. " + number)
 
-        if current_char == '+':
-            token = Token(PLUS, current_char)
-            self.pos += 1
-            return token
 
-        if current_char == '-':
-            token = Token(MINUS, current_char)
-            self.pos += 1
-            return token
+        return int(number)
+    
         
-        self.error()
+        
+    # Lexical analyzer: breaks a sentence into tokens one at a time
+    # returns next token in input
+    def get_next_token(self):
 
+        while self.current_character is not None:
+            print("3a. " + self.current_character)
+
+            if self.current_character.isspace():
+                self.remove_white_spaces()
+                continue
+                
+            if self.current_character.isdigit():
+                i = self.get_integer_input()
+                print( i )
+                return Token(INTEGER, i)
+
+            if self.current_character == '+':
+                self.update_current_character()
+                return Token(PLUS, self.current_character)
+
+            if self.current_character == '-':
+                self.update_current_character()
+                return Token(MINUS, self.current_character)
+
+            self.error()
+
+        return Token(EOF, None)
      
+        
+        
     def eat(self, token_type):
         # compare the current token type with the passed token
         # type and if they match then "eat" the current token
@@ -123,7 +123,7 @@ class Interpreter(object):
     def expr(self):
         """
         i. verifies that the sequence of tokens does indeed correspond to the expected sequence of tokens
-            expr -> INTEGER PLUS INTEGER
+            expr -> INTEGER OP INTEGER
             find the structure in the flat stream of tokens it gets from the lexer 
             tries to find a sequence of tokens: integer followed by a plus sign followed by an integer
         ii. After it’s successfully confirmed the structure, it generates the result
@@ -132,17 +132,21 @@ class Interpreter(object):
         
         # set current token to the first token taken from the input
         self.current_token = self.get_next_token()
-
-        # we expect the current token to be a single-digit integer
+        print(self.current_token)
+        
+        # we expect the current token to be an integer
         left = self.current_token
         self.eat(INTEGER)
 
-        # we expect the current token to be a '+' token
+        # we expect the current token to be an operator
         op = self.current_token
-        
-        self.eat(PLUS)
-
-        # we expect the current token to be a single-digit integer
+        if op.type == PLUS:
+            self.eat(PLUS)
+        else:
+            self.eat(MINUS)
+            
+            
+        # we expect the current token to be an integer
         right = self.current_token
         self.eat(INTEGER)
         # after the above call the self.current_token is set to EOF token
@@ -151,22 +155,29 @@ class Interpreter(object):
         # has been successfully found and the method can just
         # return the result of adding two integers, thus
         # effectively interpreting client input
-        result = left.value + right.value
+        if op.type == PLUS:
+            result = left.value + right.value
+        else:
+            result = left.value - right.value        
+        
         return result
 
 
 def main():
     while True:
         try:
-            text = input('calc> ')
+            user_input = input('calc> ')
         except EOFError:
             break
-        if not text:
+        if not user_input:
             continue
-        interpreter = Interpreter(text)
+            
+        interpreter = Interpreter(user_input)
+        print("3. " + interpreter.current_character)
+        
         result = interpreter.expr()
         print(result)
 
 
 if __name__ == '__main__':
-    main()
+    main() 
