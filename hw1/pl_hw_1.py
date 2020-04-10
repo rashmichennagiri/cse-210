@@ -14,8 +14,9 @@ TODO:
 
 # Token types
 # EOF token = no more input left for lexical analysis
-INTEGER, PLUS, MINUS, MULTIPLY, EOF = 'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'EOF'
-
+INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, LPAREN, RPAREN, EOF = (
+    'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', '(', ')', 'EOF'
+)
 
 
 class Token(object):
@@ -47,8 +48,6 @@ class Lexer(object):
         self.user_input = user_input   # client string input, e.g. "3+5", "12 - 5"
         self.index = 0                 # self.index is an index into self.text
         self.current_character = self.user_input[self.index]
-        
-        print("1. " + self.current_character)
         
         
     def error(self):
@@ -111,6 +110,18 @@ class Lexer(object):
                 self.update_current_character()
                 return Token(MULTIPLY, '*')    
 
+            if self.current_character == '/':
+                self.update_current_character()
+                return Token(DIVIDE, '/')  
+
+            if self.current_character == '(':
+                self.update_current_character()
+                return Token(LPAREN, '(')      
+
+            if self.current_character == ')':
+                self.update_current_character()
+                return Token(RPAREN, ')')  
+
             self.error()
 
         return Token(EOF, None)
@@ -121,10 +132,10 @@ class Interpreter(object):
 
     def __init__(self, lexer):
         self.lexer = lexer
-        self.current_token = self.lexer.get_next_token 
+        self.current_token = self.lexer.get_next_token()  
         # set current token to the first token taken from the input
-   
-   
+
+
     def error(self):
         raise Exception('INVALID SYNTAX!')
 
@@ -139,7 +150,53 @@ class Interpreter(object):
         else:
             self.error()
 
+
+    def get_next_factor(self):
+    # returns the next integer term 
+    # factor : INTEGER | LPAREN expr RPAREN   
+        token = self.current_token
+        if token.type == INTEGER:
+            self.eat(INTEGER)
+            return token.value
+        elif token.type == LPAREN:
+            self.eat(LPAREN)
+            result = self.expr()
+            self.eat(RPAREN)
+            return result   
+
+
+    def get_next_term(self):
+    # performs MUL/DIV
+    # term: factor ( (MUL|DIV) factor )*   
+        result = self.get_next_factor()
+        
+        while self.current_token.type in (MULTIPLY, DIVIDE):
+        # we expect the current token to be an operator
+            op = self.current_token
+
+            if op.type == MULTIPLY:
+                self.eat(MULTIPLY)
+                result = result * self.get_next_factor()
+            else:
+                self.eat(DIVIDE)
+                result = result / self.get_next_factor()
+        
+        return result
+
+
     def expr(self):
+    # expr : term ((PLUS | MINUS) term)*    
+
+        """Arithmetic expression parser / interpreter.
+
+        calc>  14 + 2 * 3 - 6 / 2
+        17
+
+        expr   : term ((PLUS | MINUS) term)*
+        term   : factor ((MUL | DIV) factor)*
+        factor : INTEGER
+        """
+
         """
         i. PARSING
             syntax analysis
@@ -152,38 +209,20 @@ class Interpreter(object):
 
         parsing and interpreting done hand in hand    
         """
-        
-        # set current token to the first token taken from the input
-        # we expect the first token to be an integer
-        self.current_token = self.lexer.get_next_token()
-        result = self.current_token.value
-        self.eat(INTEGER)
-        
-        while self.current_token.type in (PLUS, MINUS, MULTIPLY):
+
+        result = self.get_next_term()
+
+        while self.current_token.type in (PLUS, MINUS):
         # we expect the current token to be an operator
             op = self.current_token
 
             if op.type == PLUS:
                 self.eat(PLUS)
-                # we expect the next token to be an integer
-                right = self.current_token.value
-                self.eat(INTEGER)
-                result = result + right
+                result = result + self.get_next_term()
             
             elif op.type == MINUS:
                 self.eat(MINUS)
-                # we expect the next token to be an integer
-                right = self.current_token.value
-                self.eat(INTEGER)
-                result = result - right
-
-            else:
-                # TODO PRECEDENCE!
-                self.eat(MULTIPLY)
-                # we expect the next token to be an integer
-                right = self.current_token.value
-                self.eat(INTEGER)
-                result = result * right
+                result = result - self.get_next_term()
 
         # after the above call the self.current_token is set to EOF token
         
