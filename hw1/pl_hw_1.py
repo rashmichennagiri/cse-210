@@ -128,7 +128,36 @@ class Lexer(object):
      
 
 
-class Interpreter(object):
+class AST(object):
+    pass
+
+
+
+class BinaryOperation(AST):
+    def __init__(self, left, op, right):
+        self.left = left                # integer node of type 'Number' / subtree of BinOp
+        self.token = self.op = op       # operation token 
+        self.right = right              # integer node of type 'Number' / subtree of BinOp
+
+
+
+class Number(AST):
+    # number node
+    def __init__(self, token):
+        self.token = token              # integer token
+        self.value = token.value        # actual integer value
+
+
+
+class Parser(object):
+    '''
+       i. PARSING
+       syntax analysis
+        verifies that the sequence of tokens does indeed correspond to the expected sequence of tokens
+        expr -> INTEGER OP INTEGER
+        find the structure in the flat stream of tokens it gets from the lexer 
+        tries to find a sequence of tokens: integer followed by a plus sign followed by an integer
+    '''
 
     def __init__(self, lexer):
         self.lexer = lexer
@@ -139,12 +168,11 @@ class Interpreter(object):
     def error(self):
         raise Exception('INVALID SYNTAX!')
 
-        
+
     def eat(self, token_type):
-        # compare the current token type with the passed token
-        # type and if they match then "eat" the current token
-        # and assign the next token to the self.current_token,
-        # otherwise raise an exception.
+        # compare the current token type with the passed token type
+        # if they match, "eat" current token, then assign the next token
+        # else raise exception
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
         else:
@@ -155,78 +183,113 @@ class Interpreter(object):
     # returns the next integer term 
     # factor : INTEGER | LPAREN expr RPAREN   
         token = self.current_token
+
         if token.type == INTEGER:
             self.eat(INTEGER)
-            return token.value
+            return Number(token)
+
         elif token.type == LPAREN:
             self.eat(LPAREN)
-            result = self.expr()
+            node = self.expr()
             self.eat(RPAREN)
-            return result   
+            return node   
 
 
     def get_next_term(self):
-    # performs MUL/DIV
+    # for MUL/DIV
     # term: factor ( (MUL|DIV) factor )*   
-        result = self.get_next_factor()
+        node = self.get_next_factor()
         
         while self.current_token.type in (MULTIPLY, DIVIDE):
         # we expect the current token to be an operator
-            op = self.current_token
+            token = self.current_token
 
-            if op.type == MULTIPLY:
+            if token.type == MULTIPLY:
                 self.eat(MULTIPLY)
-                result = result * self.get_next_factor()
+                #result = result * self.get_next_factor()
             else:
                 self.eat(DIVIDE)
-                result = result / self.get_next_factor()
+                #result = result / self.get_next_factor()
         
-        return result
+            node = BinaryOperation( left=node , op=token, right=self.get_next_term())
+
+        return node
+
 
 
     def expr(self):
     # expr : term ((PLUS | MINUS) term)*    
 
         """Arithmetic expression parser / interpreter.
-
-        calc>  14 + 2 * 3 - 6 / 2
-        17
-
         expr   : term ((PLUS | MINUS) term)*
         term   : factor ((MUL | DIV) factor)*
         factor : INTEGER
         """
-
         """
-        i. PARSING
-            syntax analysis
-            verifies that the sequence of tokens does indeed correspond to the expected sequence of tokens
-            expr -> INTEGER OP INTEGER
-            find the structure in the flat stream of tokens it gets from the lexer 
-            tries to find a sequence of tokens: integer followed by a plus sign followed by an integer
         ii. INTERPRETING
-            After it’s successfully confirmed the structure, it generates the result
+        After it’s successfully confirmed the structure, it generates the result
+       """
 
-        parsing and interpreting done hand in hand    
-        """
-
-        result = self.get_next_term()
+        node = self.get_next_term()
 
         while self.current_token.type in (PLUS, MINUS):
         # we expect the current token to be an operator
-            op = self.current_token
+            token = self.current_token
 
-            if op.type == PLUS:
+            if token.type == PLUS:
                 self.eat(PLUS)
-                result = result + self.get_next_term()
+                #result = result + self.get_next_term()
             
-            elif op.type == MINUS:
+            elif token.type == MINUS:
                 self.eat(MINUS)
-                result = result - self.get_next_term()
+                #result = result - self.get_next_term()
 
+            node = BinaryOperation( left=node, op=token, right=self.get_next_term())
+            
         # after the above call the self.current_token is set to EOF token
         
-        return result
+        return node
+
+
+    def parse(self):
+        return self.expr()
+
+
+# visitor design pattern
+class NodeVisitor(object):
+
+    def visit(self, node):
+        method_name = 'visit_' + type(node).__name__                # type(node).__name__ = returns name of the class
+        visitor = getattr(self, method_name, self.generic_visit)
+        return visitor(node)        
+
+    def generic_visit(self, node):
+        raise Exception('No visit_{} method'.format(type(node).__name__))
+
+
+
+class Interpreter(NodeVisitor):
+    def __init__(self, parser):
+        self.parser = parser
+
+    def visit_BinaryOperation(self, node):
+        if node.op.type == PLUS:
+            return self.visit(node.left) + self.visit(node.right)
+        elif node.op.type == MINUS:
+            return self.visit(node.left) - self.visit(node.right)
+        elif node.op.type == MULTIPLY:
+            return self.visit(node.left) * self.visit(node.right)
+        elif node.op.type == DIVIDE:
+            return self.visit(node.left) / self.visit(node.right)
+
+
+    def visit_Number(self, node):
+        return node.value
+
+
+    def interpret(self):
+        tree = self.parser.parse()
+        return self.visit(tree)
 
 
 
@@ -239,9 +302,11 @@ def main():
         if not user_input:
             continue
 
-        lexer = Lexer(user_input)    
-        interpreter = Interpreter(lexer)
-        result = interpreter.expr()
+        lexer = Lexer(user_input)  
+        parser = Parser(lexer)  
+        interpreter = Interpreter(parser)
+
+        result = interpreter.interpret()
 
         print("=======")
         print(result)
