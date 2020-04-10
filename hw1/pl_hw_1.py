@@ -7,14 +7,14 @@ TODO:
 * spaces between digits
 	  1 0 + 100 - 1 0  
 * handle
-    - multiplication
+    - PRECEDENCE in multiplication
     - division
     - exponentiation
 '''
 
 # Token types
 # EOF token = no more input left for lexical analysis
-INTEGER, PLUS, MINUS, EOF = 'INTEGER', 'PLUS', 'MINUS', 'EOF'
+INTEGER, PLUS, MINUS, MULTIPLY, EOF = 'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'EOF'
 
 
 
@@ -90,24 +90,26 @@ class Lexer(object):
     def get_next_token(self):
 
         while self.current_character is not None:
-            print("3a. " + self.current_character)
+            print("self.current_character: " + self.current_character)
 
             if self.current_character.isspace():
                 self.remove_white_spaces()
                 continue
                 
             if self.current_character.isdigit():
-                i = self.get_integer_input()
-                print( i )
-                return Token(INTEGER, i)
+                return Token(INTEGER, self.get_integer_input())
 
             if self.current_character == '+':
                 self.update_current_character()
-                return Token(PLUS, self.current_character)
+                return Token(PLUS, '+')
 
             if self.current_character == '-':
                 self.update_current_character()
-                return Token(MINUS, self.current_character)
+                return Token(MINUS, '-')
+
+            if self.current_character == '*':
+                self.update_current_character()
+                return Token(MULTIPLY, '*')    
 
             self.error()
 
@@ -156,9 +158,8 @@ class Interpreter(object):
         self.current_token = self.lexer.get_next_token()
         result = self.current_token.value
         self.eat(INTEGER)
-        print(result)
-
-        while self.current_token.type in (PLUS, MINUS):
+        
+        while self.current_token.type in (PLUS, MINUS, MULTIPLY):
         # we expect the current token to be an operator
             op = self.current_token
 
@@ -168,16 +169,26 @@ class Interpreter(object):
                 right = self.current_token.value
                 self.eat(INTEGER)
                 result = result + right
-            else:
+            
+            elif op.type == MINUS:
                 self.eat(MINUS)
                 # we expect the next token to be an integer
                 right = self.current_token.value
                 self.eat(INTEGER)
                 result = result - right
 
+            else:
+                # TODO PRECEDENCE!
+                self.eat(MULTIPLY)
+                # we expect the next token to be an integer
+                right = self.current_token.value
+                self.eat(INTEGER)
+                result = result * right
+
         # after the above call the self.current_token is set to EOF token
         
         return result
+
 
 
 def main():
@@ -192,8 +203,10 @@ def main():
         lexer = Lexer(user_input)    
         interpreter = Interpreter(lexer)
         result = interpreter.expr()
+
         print("=======")
         print(result)
+
 
 
 if __name__ == '__main__':
