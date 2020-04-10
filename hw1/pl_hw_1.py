@@ -1,16 +1,24 @@
 '''
-1. lexer: to turn the input of characters into a stream of tokens
-2. parse: to recognize phrases in the stream of tokens 
-3. interpreter: to execute parse input
 
 TODO:
 * spaces between digits
 	  1 0 + 100 - 1 0  
 * handle
-    - PRECEDENCE in multiplication
-    - division
     - exponentiation
+
+* tests:
+calc> 7 + 3 * (10 / (12 / (3 + 1) - 1)) / (2 + 3) - 5 - 3 + (8)
+10
+
 '''
+
+###############################################################################
+#                                                                             #
+#  1. LEXER                                                                   #
+#     To turn the input of characters into a stream of tokens                 #
+#                                                                             #
+###############################################################################
+
 
 # Token types
 # EOF token = no more input left for lexical analysis
@@ -53,7 +61,8 @@ class Lexer(object):
     def error(self):
         raise Exception('INVALID CHARACTER!')
 
-        
+
+    # TODO
     def checkIfOperator(self, char):
         if char == '+' or char == '-': 
             return True
@@ -89,7 +98,7 @@ class Lexer(object):
     def get_next_token(self):
 
         while self.current_character is not None:
-            print("self.current_character: " + self.current_character)
+            #print("self.current_character: " + self.current_character)
 
             if self.current_character.isspace():
                 self.remove_white_spaces()
@@ -126,6 +135,14 @@ class Lexer(object):
 
         return Token(EOF, None)
      
+
+
+###############################################################################
+#                                                                             #
+#  2. PARSER                                                                  #
+#     To build AST from the tokens                                            #
+#                                                                             #
+###############################################################################
 
 
 class AST(object):
@@ -245,6 +262,7 @@ class Parser(object):
                 #result = result - self.get_next_term()
 
             node = BinaryOperation( left=node, op=token, right=self.get_next_term())
+            # left assiociativity
             
         # after the above call the self.current_token is set to EOF token
         
@@ -255,12 +273,25 @@ class Parser(object):
         return self.expr()
 
 
+
+###############################################################################
+#                                                                             #
+#  3. INTERPRETER                                                             #
+#     To execute the parsed AST                                               #
+#                                                                             #
+###############################################################################
+
+
 # visitor design pattern
 class NodeVisitor(object):
 
     def visit(self, node):
         method_name = 'visit_' + type(node).__name__                # type(node).__name__ = returns name of the class
-        visitor = getattr(self, method_name, self.generic_visit)
+        #print(method_name)
+        visitor = getattr(self, method_name, self.generic_visit)    # visitor is the actual function: visit_BinaryOperation/ visit_Number
+        #print("2 ~~~~")
+        #print( visitor(node) )
+        #print("3 ~~~~")
         return visitor(node)        
 
     def generic_visit(self, node):
@@ -272,14 +303,19 @@ class Interpreter(NodeVisitor):
     def __init__(self, parser):
         self.parser = parser
 
+    # post-order traversal
     def visit_BinaryOperation(self, node):
         if node.op.type == PLUS:
+            #print(" + ^^^^^")
             return self.visit(node.left) + self.visit(node.right)
         elif node.op.type == MINUS:
+            #print(" - ^^^^^")
             return self.visit(node.left) - self.visit(node.right)
         elif node.op.type == MULTIPLY:
+            #print(" * ^^^^^")
             return self.visit(node.left) * self.visit(node.right)
         elif node.op.type == DIVIDE:
+            #print(" / ^^^^^")
             return self.visit(node.left) / self.visit(node.right)
 
 
@@ -291,6 +327,13 @@ class Interpreter(NodeVisitor):
         tree = self.parser.parse()
         return self.visit(tree)
 
+
+
+###############################################################################
+#                                                                             #
+#   MAIN                                                                      #
+#                                                                             #
+###############################################################################
 
 
 def main():
