@@ -9,7 +9,9 @@ TODO:
 * tests:
 calc> 7 + 3 * (10 / (12 / (3 + 1) - 1)) / (2 + 3) - 5 - 3 + (8)
 10
-
+calc> 5 - - - + - (3 + 4) - +2
+=======
+10
 '''
 
 ###############################################################################
@@ -158,6 +160,13 @@ class BinaryOperation(AST):
 
 
 
+class UnaryOperation(AST):
+    def __init__(self, op, expr):
+        self.token = self.op = op       # unary operator: + or -
+        self.expr = expr                # expr = AST node
+
+
+
 class Number(AST):
     # number node
     def __init__(self, token):
@@ -198,10 +207,20 @@ class Parser(object):
 
     def get_next_factor(self):
     # returns the next integer term 
-    # factor : INTEGER | LPAREN expr RPAREN   
+    # factor : (PLUS|MINUS) factor | INTEGER | LPAREN expr RPAREN   
         token = self.current_token
 
-        if token.type == INTEGER:
+        if token.type == PLUS:
+            self.eat(PLUS)
+            node = UnaryOperation(token, self.get_next_factor())
+            return node
+
+        elif token.type == MINUS:
+            self.eat(MINUS)
+            node = UnaryOperation(token, self.get_next_factor())
+            return node
+
+        elif token.type == INTEGER:
             self.eat(INTEGER)
             return Number(token)
 
@@ -240,7 +259,7 @@ class Parser(object):
         """Arithmetic expression parser / interpreter.
         expr   : term ((PLUS | MINUS) term)*
         term   : factor ((MUL | DIV) factor)*
-        factor : INTEGER
+        factor : (PLUS|MINUS) factor | INTEGER | LPAREN expr RPAREN   
         """
         """
         ii. INTERPRETING
@@ -318,6 +337,13 @@ class Interpreter(NodeVisitor):
             #print(" / ^^^^^")
             return self.visit(node.left) / self.visit(node.right)
 
+
+    def visit_UnaryOperation(self,node):
+        if node.op.type == PLUS:
+            return +self.visit(node.expr)
+        elif node.op.type == MINUS:
+            return -self.visit(node.expr)
+        
 
     def visit_Number(self, node):
         return node.value
