@@ -1,9 +1,12 @@
-CSE-210A 
-HOMEWORK 1
+CSE-210A  HOMEWORK 1
+
+
 Interpreter for the ARITH language
 
 
 Name: Rashmi Chennagiri
+
+
 Email: rchennag@ucsc.edu
 
 
@@ -12,15 +15,17 @@ Language: Python 3.7.6
 
 Folder Structure:
 (base) RASHMIs-MacBook-Pro:hw1 rashmichennagiri$ ls
-README.md     arith.py     arith     arith.spec     
-bin     libexec     test.sh     tests     
-cse-210-hw1-report.pdf	makefile		
+README.md     arith.py     arith     arith.spec     bin     libexec     test.sh     tests     cse-210-hw1-report.pdf     makefile		
 
 
 HW1 code: arith.py
+
 Makefile: makefile
+
 Test-related: test.sh, tests/, libexec/, bin/ (custom test cases in ‘tests/custom.bats’)
+
 Build-related: arith arith.spec
+
 Test evidence: cse-210-hw1-report.pdf
 
 
