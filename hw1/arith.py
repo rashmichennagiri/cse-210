@@ -1,17 +1,7 @@
 '''
-
 TODO:
-* spaces between digits
-	  1 0 + 100 - 1 0  
-* handle
     - exponentiation
-
-* tests:
-calc> 7 + 3 * (10 / (12 / (3 + 1) - 1)) / (2 + 3) - 5 - 3 + (8)
-10
-calc> 5 - - - + - (3 + 4) - +2
-=======
-10
+    - spaces between digits?
 '''
 
 ###############################################################################
@@ -349,7 +339,7 @@ class Interpreter(NodeVisitor):
         return node.value
 
 
-    def interpret(self):
+    def eval(self):
         tree = self.parser.parse()
         return self.visit(tree)
 
@@ -365,7 +355,7 @@ class Interpreter(NodeVisitor):
 def main():
     while True:
         try:
-            user_input = input('calc> ')
+            user_input = input('')
         except EOFError:
             break
         if not user_input:
@@ -375,9 +365,9 @@ def main():
         parser = Parser(lexer)  
         interpreter = Interpreter(parser)
 
-        result = interpreter.interpret()
+        result = interpreter.eval()
 
-        print("=======")
+        #print("=======")
         print(result)
 
 
