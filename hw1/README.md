@@ -37,9 +37,9 @@ To run the executable:
 
 
 To run test script:
-2. cp dist/arith .
-3. ./test.sh
-4. You have two options here:
+1. cp dist/arith .
+2. ./test.sh
+3. You have two options here:
      i. Enter the expression to be evaluated
     ii. Press 'ctrl+D' to trigger the execution of test cases
 
