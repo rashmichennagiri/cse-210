@@ -21,15 +21,14 @@ INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, LPAREN, RPAREN, EOF = (
 
 class Token(object):
     
-    # constructor
     def __init__(self, type, value):
-        # token type: INTEGER, PLUS, MINUS or EOF
-        self.type = type
-        # token value: 0, 1, 2. 3, 4, 5, 6, 7, 8, 9, '+', or None
-        self.value = value
+        
+        self.type = type        # one of the defined token types
+        self.value = value      # actual token value: 0, 1, 2, '+', '(', None
 
-    # to print objects as string: Token(INTEGER, 3), Token(PLUS '+')    
     def __str__(self): 
+    # to print objects as string: Token(INTEGER, 3), Token(PLUS '+')    
+
         return 'Token({type}, {value})'.format(
             type=self.type,
             value=repr(self.value)
@@ -39,26 +38,17 @@ class Token(object):
         return self.__str__()
 
 
-
     
 class Lexer(object):
 
-    #constructor
     def __init__(self, user_input):
-        self.user_input = user_input   # client string input, e.g. "3+5", "12 - 5"
-        self.index = 0                 # self.index is an index into self.text
+        self.user_input = user_input   # client string input: '3+5', '12 - 5'
+        self.index = 0                 # index of current character in user_input
         self.current_character = self.user_input[self.index]
         
         
     def error(self):
         raise Exception('INVALID CHARACTER!')
-
-
-    # TODO
-    def checkIfOperator(self, char):
-        if char == '+' or char == '-': 
-            return True
-        return False  
     
     
     def update_current_character(self):
@@ -85,9 +75,8 @@ class Lexer(object):
         return int(number)
        
         
-    # Lexical analyzer: breaks a sentence into tokens one at a time
-    # returns next token in input
     def get_next_token(self):
+    # returns next token in user input
 
         while self.current_character is not None:
             #print("self.current_character: " + self.current_character)
@@ -143,6 +132,7 @@ class AST(object):
 
 
 class BinaryOperation(AST):
+# binary operator node    
     def __init__(self, left, op, right):
         self.left = left                # integer node of type 'Number' / subtree of BinOp
         self.token = self.op = op       # operation token 
@@ -151,6 +141,7 @@ class BinaryOperation(AST):
 
 
 class UnaryOperation(AST):
+# unary operator node    
     def __init__(self, op, expr):
         self.token = self.op = op       # unary operator: + or -
         self.expr = expr                # expr = AST node
@@ -158,7 +149,7 @@ class UnaryOperation(AST):
 
 
 class Number(AST):
-    # number node
+# number node
     def __init__(self, token):
         self.token = token              # integer token
         self.value = token.value        # actual integer value
@@ -166,19 +157,12 @@ class Number(AST):
 
 
 class Parser(object):
-    '''
-       i. PARSING
-       syntax analysis
-        verifies that the sequence of tokens does indeed correspond to the expected sequence of tokens
-        expr -> INTEGER OP INTEGER
-        find the structure in the flat stream of tokens it gets from the lexer 
-        tries to find a sequence of tokens: integer followed by a plus sign followed by an integer
-    '''
+# To verify that the sequence of tokens does indeed correspond to the expected sequence of tokens    
+# Finds the structure in the flat stream of tokens it gets from the lexer 
 
     def __init__(self, lexer):
         self.lexer = lexer
-        self.current_token = self.lexer.get_next_token()  
-        # set current token to the first token taken from the input
+        self.current_token = self.lexer.get_next_token()    # set current token to the first token taken from the input
 
 
     def error(self):
@@ -186,9 +170,9 @@ class Parser(object):
 
 
     def eat(self, token_type):
-        # compare the current token type with the passed token type
-        # if they match, "eat" current token, then assign the next token
-        # else raise exception
+    # compare the current token type with the passed token type
+    # if they match, 'eat' current token, then assign the next token
+    # else raise exception
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
         else:
@@ -196,7 +180,7 @@ class Parser(object):
 
 
     def get_next_factor(self):
-    # returns the next integer term 
+    # returns the next integer term / unary operator subtree
     # factor : (PLUS|MINUS) factor | INTEGER | LPAREN expr RPAREN   
         token = self.current_token
 
@@ -232,30 +216,20 @@ class Parser(object):
 
             if token.type == MULTIPLY:
                 self.eat(MULTIPLY)
-                #result = result * self.get_next_factor()
             else:
                 self.eat(DIVIDE)
-                #result = result / self.get_next_factor()
         
             node = BinaryOperation( left=node , op=token, right=self.get_next_term())
 
         return node
 
 
-
     def expr(self):
-    # expr : term ((PLUS | MINUS) term)*    
-
-        """Arithmetic expression parser / interpreter.
-        expr   : term ((PLUS | MINUS) term)*
-        term   : factor ((MUL | DIV) factor)*
-        factor : (PLUS|MINUS) factor | INTEGER | LPAREN expr RPAREN   
-        """
-        """
-        ii. INTERPRETING
-        After it’s successfully confirmed the structure, it generates the result
-       """
-
+    # Arithmetic Expression Grammar:
+    # expr   : term ((PLUS | MINUS) term)*
+    # term   : factor ((MUL | DIV) factor)*
+    # factor : (PLUS|MINUS) factor | INTEGER | LPAREN expr RPAREN   
+      
         node = self.get_next_term()
 
         while self.current_token.type in (PLUS, MINUS):
@@ -264,16 +238,15 @@ class Parser(object):
 
             if token.type == PLUS:
                 self.eat(PLUS)
-                #result = result + self.get_next_term()
             
             elif token.type == MINUS:
                 self.eat(MINUS)
-                #result = result - self.get_next_term()
 
-            node = BinaryOperation( left=node, op=token, right=self.get_next_term())
             # left assiociativity
+            node = BinaryOperation( left=node, op=token, right=self.get_next_term())
             
-        # after the above call the self.current_token is set to EOF token
+            
+        # after all the above calls, the self.current_token is now set to EOF token
         
         return node
 
@@ -296,11 +269,7 @@ class NodeVisitor(object):
 
     def visit(self, node):
         method_name = 'visit_' + type(node).__name__                # type(node).__name__ = returns name of the class
-        #print(method_name)
-        visitor = getattr(self, method_name, self.generic_visit)    # visitor is the actual function: visit_BinaryOperation/ visit_Number
-        #print("2 ~~~~")
-        #print( visitor(node) )
-        #print("3 ~~~~")
+        visitor = getattr(self, method_name, self.generic_visit)    # visitor is the actual function: visit_BinaryOperation/visit_Number
         return visitor(node)        
 
     def generic_visit(self, node):
@@ -315,16 +284,12 @@ class Interpreter(NodeVisitor):
     # post-order traversal
     def visit_BinaryOperation(self, node):
         if node.op.type == PLUS:
-            #print(" + ^^^^^")
             return self.visit(node.left) + self.visit(node.right)
         elif node.op.type == MINUS:
-            #print(" - ^^^^^")
             return self.visit(node.left) - self.visit(node.right)
         elif node.op.type == MULTIPLY:
-            #print(" * ^^^^^")
             return self.visit(node.left) * self.visit(node.right)
         elif node.op.type == DIVIDE:
-            #print(" / ^^^^^")
             return self.visit(node.left) / self.visit(node.right)
 
 
@@ -366,8 +331,6 @@ def main():
         interpreter = Interpreter(parser)
 
         result = interpreter.eval()
-
-        #print("=======")
         print(result)
 
 
