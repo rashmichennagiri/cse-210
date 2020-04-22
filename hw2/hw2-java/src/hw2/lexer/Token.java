@@ -9,7 +9,7 @@ package hw2.lexer;
 public class Token {
 
 	final TokenType tokenType;		// type of the token
-	final String lexeme;	// actual lexeme
+	public final String lexeme;	// actual lexeme
 	final Object literal;	// literal value of the token	
 	final int line;			// line number of the token
 	
