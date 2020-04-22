@@ -247,7 +247,7 @@ public class Lexer {
 	 * @return
 	 */
 	private boolean isAlphabet(char a) {
-		return (a>='a' && a<='z');
+		return (a>='a' && a<='z') || (a>='A' && a<='Z') ;
 	}
 	
 	

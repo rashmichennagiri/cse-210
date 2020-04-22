@@ -20,11 +20,11 @@ import hw2.lexer.Token;
  * 
  */
 public class WhileInterpreter {
-	
-	
+
+
 	static boolean hadError = false; 	// to specify if user input has error
-	
-	
+
+
 
 	/**
 	 * executes commands written in the specified file
@@ -34,14 +34,14 @@ public class WhileInterpreter {
 	 * @throws WhileInterpreterException 
 	 */
 	private static void runFile(String path) throws IOException, WhileInterpreterException {
-	    byte[] bytes = Files.readAllBytes(Paths.get(path));        
-	    run(new String(bytes, Charset.defaultCharset()));    
-	    
-	    if(hadError)
-	    	System.exit(65);
-	  }                                                            
+		byte[] bytes = Files.readAllBytes(Paths.get(path));        
+		run(new String(bytes, Charset.defaultCharset()));    
 
-	
+		if(hadError)
+			System.exit(65);
+	}                                                            
+
+
 	/**
 	 * provides prompt to enter code onto console
 	 * 
@@ -51,20 +51,25 @@ public class WhileInterpreter {
 	private static void runPrompt() throws IOException {
 		InputStreamReader input = new InputStreamReader(System.in);
 		BufferedReader reader = new BufferedReader(input);
-		
+		String userInput = "@";
+
 		for(;;) {
 			hadError = false;
 			System.out.print("\n>> ");
 			try {
-				run( reader.readLine() );
+				userInput = reader.readLine();
+				if(userInput.equals("@"))
+						break;
+				else
+					run( userInput );
 			} catch (WhileInterpreterException e) {
 				e.printStackTrace();
 			}
 		}
-		// cmd+C to exit
+		// @ to exit
 	}
-	
-	
+
+
 	/**
 	 * 
 	 * @param userInput
@@ -73,13 +78,13 @@ public class WhileInterpreter {
 	private static void run(String userInput) throws WhileInterpreterException {
 		Lexer lexer = new Lexer(userInput);
 		List<Token> tokens = lexer.scanUserInputForTokens();
-		
+
 		for(Token t: tokens) {
 			System.out.println(t);
 		}
 	}
-	
-	
+
+
 	/**
 	 * TODO throws declaration
 	 * 
@@ -88,17 +93,17 @@ public class WhileInterpreter {
 	 * @throws WhileInterpreterException 
 	 */
 	public static void main(String[] args) throws IOException, WhileInterpreterException {
-		
+
 		if (args.length > 1) {                                   
-		      System.out.println("Usage: while [scriptName]");            
-		      System.exit(64);
-		      
-		    } else if (args.length == 1) {                           
-		      runFile(args[0]);   
-		      
-		    } else {                                                 
-		      runPrompt();                                           
-		    }                                                        
-		  }       
-	
+			System.out.println("Usage: while [scriptName]");            
+			System.exit(64);
+
+		} else if (args.length == 1) {                           
+			runFile(args[0]);   
+
+		} else {                                                 
+			runPrompt();                                           
+		}                                                        
+	}       
+
 }
