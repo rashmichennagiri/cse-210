@@ -42,6 +42,8 @@ public class Lexer {
 		reservedKeywords.put("if", TokenType.IF);
 		reservedKeywords.put("else", TokenType.ELSE);
 		reservedKeywords.put("then", TokenType.THEN);
+		reservedKeywords.put("var", TokenType.VAR);
+
 		
 	}
 

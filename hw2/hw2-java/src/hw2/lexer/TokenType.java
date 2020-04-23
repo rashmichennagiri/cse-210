@@ -32,7 +32,7 @@ public enum TokenType {
 	TRUE, FALSE,
 	DO, WHILE, 
 	IF, ELSE, THEN,
-	
+	VAR,
 	
 	EOF
 }

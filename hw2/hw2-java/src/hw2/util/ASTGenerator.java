@@ -27,17 +27,17 @@ public class ASTGenerator {
 		pw.println("package hw2.parser;");
 		pw.println();
 
-		pw.println("import java.util.List;");
+		pw.println("import hw2.lexer.Token;");
 		pw.println();
 
-		pw.println("abstract class " + baseName + "{");
+		pw.println("public abstract class " + baseName + "{");
 
 		defineVisitor(pw, baseName, types);
-		
+
 		// BASE CLASS accept() METHOD
 		pw.println();
-		pw.println("	abstract <R> R accept(Visitor<R> visitor);");
-
+		pw.println("	public abstract <R> R accept(Visitor<R> visitor);");
+		pw.println();
 
 		// AST classes
 		for (String type : types) {
@@ -61,7 +61,7 @@ public class ASTGenerator {
 	 * @param types
 	 */
 	private static void defineVisitor(PrintWriter pw, String baseName, List<String> types) {
-		pw.println("	interface Visitor<R> {");
+		pw.println("	public interface Visitor<R> {");
 
 		for (String t : types) {
 			String typeName = t.split(":")[0].trim();
@@ -80,14 +80,14 @@ public class ASTGenerator {
 	 */
 	private static void defineTypeSubClass(PrintWriter pw, String baseName, String className, String fields) {
 
-		pw.println("	static class " + className + " extends " + baseName + "{");
+		pw.println("	public static class " + className + " extends " + baseName + "{");
 
 		// FIELDS
 		pw.println();
 		String[] fieldNames = fields.split(",");
 
 		for (String f : fieldNames) {
-			pw.println("	final " + f + ";");
+			pw.println("	public final " + f + ";");
 		}
 		pw.println();
 
@@ -105,7 +105,7 @@ public class ASTGenerator {
 
 		// VISITOR PATTERN
 		pw.println("	@Override");
-		pw.println("	<R> R accept(Visitor<R> visitor) {");
+		pw.println("	public <R> R accept(Visitor<R> visitor) {");
 		pw.println("	return visitor.visit" + className + baseName + "(this);" );
 		pw.println("	}");
 
@@ -132,9 +132,22 @@ public class ASTGenerator {
 
 		String outputDirectory = "/Users/rashmichennagiri/Documents/2020_q3_spring/cse210a_PL/pl_homeworks/cse-210/hw2/hw2-java/src/hw2/parser";
 
+		
+		// NO SPACES!
 		defineAST(outputDirectory, "Expression",
 				Arrays.asList("Binary : Expression left,Token operator,Expression right",
 						"Grouping : Expression expression", "Literal  : Object value",
-						"Unary    : Token operator,Expression expr"));
+						"Unary    : Token operator,Expression expr",
+						"Variable: Token name,Expression initializer"));
+		 
+
+
+		defineAST(outputDirectory, "Statement",
+				Arrays.asList("Expr : Expression ex",
+						"Print : Expression ex",
+						"Var : Token name,Expression initializer"));
+
+
+
 	}
 }

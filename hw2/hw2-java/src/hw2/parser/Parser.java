@@ -1,5 +1,6 @@
 package hw2.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import hw2.WhileInterpreterException;
@@ -25,10 +26,76 @@ public class Parser {
 		this.tokens = tokens;
 	}
 
-	
-	public Expression parse() throws WhileInterpreterException {
-			return expression();
+
+	/**
+	 * 
+	 * @return
+	 * @throws WhileInterpreterException
+	 */
+	public List<Statement> parse() throws WhileInterpreterException {
+		List<Statement> stmts = new ArrayList<Statement>();
+
+		while( !isLastToken() ) {
+			stmts.add(declaration());
+			stmts.add(statement());
+		}
+		return stmts;
 	}
+
+
+	private Statement statement() {
+		try {
+			return expressionStatement();
+
+		} catch (WhileInterpreterException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private Statement expressionStatement() throws WhileInterpreterException {
+		Expression ex = expression();
+		consumeToken(TokenType.SEMICOLON, "Expect ';' after expression");
+		return new Statement.Expr(ex);
+	}
+
+
+	private Statement declaration() {
+		try {
+			if(matchNextToken(TokenType.VAR))
+				return variableDeclaration();
+
+			return statement();
+			
+		}catch(Exception wie) {
+			synchronize();
+			return null;
+		}
+	}
+	
+	
+	private Statement variableDeclaration() {
+		try {
+			Token name = consumeToken(TokenType.IDENTIFIER, "Expect variable name");
+			
+			Expression initializer = null;
+			
+			if( matchNextToken(TokenType.ASSIGNMENT) && matchNextToken(TokenType.EQUAL)) {
+				initializer = expression();
+			}
+			
+			consumeToken(TokenType.SEMICOLON, "Expect ';' after variable declaration!");
+
+			return new Statement.Var(name, initializer);
+			
+			
+		} catch (WhileInterpreterException e) {
+			e.printStackTrace();
+		}
+		return null;
+		
+	}
+
 
 	/**
 	 * expression -> equality
@@ -56,17 +123,17 @@ public class Parser {
 
 		return ex;
 	}
-	
-	
+
+
 	/**
 	 * comparison -> addition ( (<|<=)addition )*
 	 * @return
 	 * @throws WhileInterpreterException 
 	 */
 	private Expression comparison() throws WhileInterpreterException {
-		
+
 		Expression ex = addition();
-		
+
 		while( matchNextToken(TokenType.LESS_THAN, TokenType.LESS_THAN_EQUAL)) {
 			Token op = getPreviousToken();
 			Expression right = addition();
@@ -84,17 +151,17 @@ public class Parser {
 	 */
 	private Expression addition() throws WhileInterpreterException {
 		Expression ex = multiplication();
-		
+
 		while( matchNextToken(TokenType.PLUS, TokenType.MINUS)) {
 			Token op = getPreviousToken();
 			Expression right = multiplication();
 			ex = new Expression.Binary(ex, op, right);
 		}
-		
+
 		return ex;
 	}
-	
-	
+
+
 	/**
 	 * multiplication -> unary ( (*|/)unary )*
 	 * @return
@@ -102,59 +169,62 @@ public class Parser {
 	 */
 	private Expression multiplication() throws WhileInterpreterException {
 		Expression ex = unary();
-		
+
 		while( matchNextToken(TokenType.MULTIPLY, TokenType.DIVIDE)) {
 			Token op = getPreviousToken();
 			Expression right = unary();
 			ex = new Expression.Binary(ex, op, right);
 		}
-		
+
 		return ex;
 	}
-	
-	
+
+
 	/**
 	 * unary -> (+|-)unary ) | primary
 	 * @return
 	 * @throws WhileInterpreterException 
 	 */
 	private Expression unary() throws WhileInterpreterException {
-		
+
 		if( matchNextToken(TokenType.MINUS, TokenType.PLUS)) {
 			Token op = getPreviousToken();
 			Expression right = unary();
 			return new Expression.Unary(op, right);
 		}
-		
+
 		return primary();
 	}
-	
-	
+
+
 	/**
 	 * primary -> NUMBER | STRING | "true" | "false" | "(" expression ")"
 	 * @return
 	 * @throws WhileInterpreterException 
 	 */
 	private Expression primary() throws WhileInterpreterException {
-		
+
 		if( matchNextToken(TokenType.TRUE))
 			return new Expression.Literal(true);
 		if( matchNextToken(TokenType.FALSE))
 			return new Expression.Literal(false);
-		
+
 		if( matchNextToken(TokenType.STRING, TokenType.NUMBER))
 			return new Expression.Literal( getPreviousToken().literal );
-		
+
 		if( matchNextToken(TokenType.LEFT_PARENTHESIS)) {
 			Expression ex = expression();
 			consumeToken( TokenType.RIGHT_PARENTHESIS, "Expect ')' after expression");
 			return new Expression.Grouping(ex);
 		}
 		
+		if( matchNextToken(TokenType.IDENTIFIER))
+			return new Expression.Variable(getPreviousToken()); 
+
 		throw new WhileInterpreterException(getCurrentToken(), "EXPRESSION EXPECTED");
 	}
-	
-	
+
+
 	/**
 	 * 
 	 * @param tokenTypes
@@ -171,12 +241,12 @@ public class Parser {
 		return false;
 	}
 
-	
+
 	private Token consumeToken(TokenType tt, String msg) throws WhileInterpreterException {
-		
+
 		if( checkCurrentTokenType(tt) )
-			advanceToken();
-		
+			return advanceToken();
+
 		throw new WhileInterpreterException(getCurrentToken(), msg);
 	}
 
@@ -191,8 +261,8 @@ public class Parser {
 			return false;
 		return getCurrentToken().tokenType == tt;
 	}
-	
-	
+
+
 	/**
 	 * gets next token in line
 	 * @return
@@ -202,8 +272,8 @@ public class Parser {
 			currentTokenIndex++;
 		return getPreviousToken();
 	}
-	
-	
+
+
 	/**
 	 * peeks and returns current token value
 	 * @return
@@ -212,7 +282,7 @@ public class Parser {
 		return tokens.get(currentTokenIndex);    
 	}                                
 
-	
+
 	/**
 	 * returns previous token value
 	 * @return
@@ -220,8 +290,8 @@ public class Parser {
 	private Token getPreviousToken() {       
 		return tokens.get(currentTokenIndex - 1);
 	} 
-	
-	
+
+
 	/**
 	 * checks if token is last token
 	 * @return
@@ -229,26 +299,26 @@ public class Parser {
 	private boolean isLastToken() {      
 		return getCurrentToken().tokenType == TokenType.EOF;     
 	}
-	
-	
+
+
 	/**
 	 * error handling, to advance until next statement
 	 */
 	private void synchronize() {                 
-	    advanceToken();
+		advanceToken();
 
-	    while (!isLastToken()) {                       
-	      if (getPreviousToken().tokenType == TokenType.SEMICOLON) 
-	    	  return;
+		while (!isLastToken()) {                       
+			if (getPreviousToken().tokenType == TokenType.SEMICOLON) 
+				return;
 
-	      switch (getCurrentToken().tokenType) {                   
-	        case IF:                               
-	        case WHILE:                            
-	          return;                              
-	      }                                        
+			switch (getCurrentToken().tokenType) {                   
+			case IF:                               
+			case WHILE:                            
+				return;                              
+			}                                        
 
-	      advanceToken();                               
-	    }                                          
-	  }         
+			advanceToken();                               
+		}                                          
+	}         
 
 }
