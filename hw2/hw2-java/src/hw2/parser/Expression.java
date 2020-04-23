@@ -34,7 +34,7 @@ public abstract class Expression {
 		public final Token operator;
 		public final Expression right;
 
-		Binary(Expression left, Token operator, Expression right) {
+		public Binary(Expression left, Token operator, Expression right) {
 			this.left = left;
 			this.operator = operator;
 			this.right = right;
@@ -55,7 +55,7 @@ public abstract class Expression {
 
 		public final Expression expression;
 
-		Grouping(Expression expression) {
+		public Grouping(Expression expression) {
 			this.expression = expression;
 		}
 
@@ -74,7 +74,7 @@ public abstract class Expression {
 
 		public final Object value;
 
-		Literal(Object value) {
+		public Literal(Object value) {
 			this.value = value;
 		}
 
@@ -94,7 +94,7 @@ public abstract class Expression {
 		public final Token operator;
 		public final Expression expr;
 
-		Unary(Token operator, Expression expr) {
+		public Unary(Token operator, Expression expr) {
 			this.operator = operator;
 			this.expr = expr;
 		}

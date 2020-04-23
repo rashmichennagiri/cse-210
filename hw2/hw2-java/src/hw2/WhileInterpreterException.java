@@ -1,5 +1,8 @@
 package hw2;
 
+import hw2.lexer.Token;
+import hw2.lexer.TokenType;
+
 public class WhileInterpreterException extends Exception{
 
 	private static final long serialVersionUID = 1L;
@@ -36,7 +39,9 @@ public class WhileInterpreterException extends Exception{
 		this( " [LINE " + line + " ]  ERROR: " + msg);
     }
 	
-
+	public WhileInterpreterException(Token token, String msg) {
+			this( " [LINE " + token.line + " ]  ERROR AT " + token.lexeme + ": " + msg);
+    }
 	
 	
 	/*

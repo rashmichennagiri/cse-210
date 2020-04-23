@@ -1,5 +1,7 @@
 package hw2.util;
 
+import hw2.lexer.Token;
+import hw2.lexer.TokenType;
 import hw2.parser.Expression;
 import hw2.parser.Expression.Binary;
 import hw2.parser.Expression.Grouping;
@@ -19,7 +21,7 @@ public class ASTPrinter implements Expression.Visitor<String>{
 	 * @param expr
 	 * @return
 	 */
-	String print(Expression expr) {
+	public String print(Expression expr) {
 		return expr.accept(this);
 	}
 	
@@ -68,7 +70,18 @@ public class ASTPrinter implements Expression.Visitor<String>{
 		return sb.toString();
 	}
 
-	
+	public static void main(String[] args) {    
+		
+		Expression expression = new Expression.Binary(  
+				
+	        new Unary( new Token(TokenType.MINUS, "-", null, 1), new Literal(123)),                        
+	        new Token(TokenType.MULTIPLY, "*", null, 1),    
+	        new Expression.Grouping( new Expression.Literal(45.67))
+	        );
+
+	    System.out.println(new ASTPrinter().print(expression));
+	  }                                                        
+
 
 
 }
