@@ -1,575 +1,654 @@
-# coding=utf-8
-# coding=utf-8
-import enum
+import sys
+import copy
+sys.tracebacklimit = 0
+
+###############################################################################
+#                                                                             #
+#  1. LEXER                                                                   #
+#     To turn the input of characters into a stream of tokens                 #
+#                                                                             #
+###############################################################################
+
+# 3 Token types: Aexpr Bexpr Commands/Satements
+# EOF token = no more input left for lexical analysis
+# All token types for INT, VAR, BOOL, ARR, PLUS, MINUS, MUL, LESSTHAN, EQUAL, NOT, AND, OR, SKIP, ASSIGN, WHILE, { , }, IF, THEN, ELSE ;
+class Token():
+
+    def __init__(self, type, value):
+        self.type = type        # one of the defined token types
+        self.value = value      # actual token value: 0, 1, 2, '+', '(', None
+
+    def __repr__(self):
+        return 'Token({type}, {value})'.format(type = self.type, value = self.value)
 
 
-class WhileASTVar(object):
-    desc = 'assignable variable'
-    _val = None
-    _id = None
-    _type = None
+class Lexer():
 
-    def __init__(self, var_id, var_type, val):
-        self._id = var_id
-        self._type = var_type
-        self._val = val
+    def __init__(self, text):
+        self.state = {}
+        self.text = text
+        self.pos = 0
+        self.current_char = self.text[self.pos]
 
-    def eval(self):
-        return self._val
+    def error(self):
+        raise Exception("INVALID CHARACTER!")
 
-    def assign(self, val):
-        self._val = val
-
-    def type(self):
-        return self._type
-
-
-class WhileASTState(object):
-    desc = 'State of a program'
-
-    def __init__(self, vars=dict()):
-        self.state_dict = {}
-        for var_id, value in vars.items():
-            self.assign_var(var_id, value)
-
-    def eval_var(self, var_id):
-        if var_id in self.state_dict:
-            return self.state_dict[var_id].eval()
+    def update_current_character(self):
+        self.pos += 1
+        # check for end of user input
+        if self.pos > len(self.text)-1:
+            self.current_char = None
         else:
-            raise NameError('var %s not in this state' % var_id)
+            self.current_char = self.text[self.pos]
 
-    def assign_var(self, var_id, val):
-        var_type = type(val).__name__
-        if var_id not in self.state_dict:
-            if var_type not in ['int', 'bool']:
-                raise TypeError('type of value %s is not integer nor boolean.' % str(val))
-            self.state_dict[var_id] = WhileASTVar(var_id, var_type, val)
+    def num(self):
+        result = ''
+        while self.current_char is not None and self.current_char.isdigit():
+            result = result + self.current_char
+            self.update_current_character()
+        return int(result)
+
+    #integer arrays reprented by lists
+    def arr(self):
+        result = ''
+        self.update_current_character()
+        while self.current_char is not None and self.current_char != "]":
+            result = result+self.current_char
+            self.update_current_character()
+        self.update_current_character()
+        result = [int(t) for t in result.split(',')]
+        return result
+
+    def assign(self):
+        result = ''
+        while self.current_char is not None and self.current_char in (':', '='):
+            result = result + self.current_char
+            self.update_current_character()
+        if result == ":=":
+            return "assign"
         else:
-            variable = self.state_dict[var_id]
-            if var_type != variable.type():
-                raise TypeError('type of value %s is not compatible with %s' % var_id, variable.type())
-            variable.assign(val)
+            self.error()   
+
+    def get_next_token(self):
+    # gets next token    
+        while self.current_char is not None:
+            if self.current_char.isspace():
+                self.update_current_character()
+            if self.current_char.isdigit():
+                return Token("INT", self.num())
+            if self.current_char == "[":
+                return Token("ARR", self.arr())
+            if self.current_char == "+":
+                self.update_current_character()
+                return Token('PLUS', "+")
+            if self.current_char == "-":
+                self.update_current_character()
+                return Token("MINUS", "-")
+            if self.current_char == "*":
+                self.update_current_character()
+                return Token("MUL", "*")
+            if self.current_char == ";":
+                self.update_current_character()
+                return Token('COMP', ";")
+            if self.current_char == "=":
+                self.update_current_character()
+                return Token('EQUAL', "=")
+            if self.current_char == "<":
+                self.update_current_character()
+                return Token("LESSTHAN", "<")
+            if self.current_char == "¬":
+                self.update_current_character()
+                return Token('NOT', "¬")
+            if self.current_char == "∧":
+                self.update_current_character()
+                return Token('AND', "∧")
+            if self.current_char == "∨":
+                self.update_current_character()
+                return Token('OR', "∨")
+            if self.current_char == "{":
+                self.update_current_character()
+                return Token("LEFTCURL", "{")
+            if self.current_char == "}":
+                self.update_current_character()
+                return Token("RIGHTCURL", "}")
+            if self.current_char == "(":
+                self.update_current_character()
+                return Token("LEFTPAR", "(")
+            if self.current_char == ")":
+                self.update_current_character()
+                return Token("RIGHTPAR", ")")
+            if self.current_char == ":":
+                return Token("ASSIGN", self.assign())
+            #Alphebetical inputs
+            if self.current_char.isalpha():
+                result = ''
+                while self.current_char is not None and (self.current_char.isalpha() or self.current_char.isdigit()):
+                    result = result+self.current_char
+                    self.update_current_character()
+                if result == "while":
+                    return Token("WHILE", "while")
+                elif result == "skip":
+                    return Token("SKIP", "skip")
+                elif result == "do":
+                    return Token("DO", "do")
+                elif result == "if":
+                    return Token("IF", "if")
+                elif result == "else":
+                    return Token("ELSE", "else")
+                elif result == "then":
+                    return Token("THEN", "then")
+                elif result == "true":
+                    return Token("BOOL", True)
+                elif result == "false":
+                    return Token("BOOL", False)
+                else:
+                    return Token("VAR", result)
+            self.error()
+        return(Token("EOF", None))
+
+
+###############################################################################
+#                                                                             #
+#  2. PARSER                                                                  #
+#     To build AST from the tokens                                            #
+#                                                                             #
+###############################################################################
+
+class IntNode():
+    def __init__(self, token):
+        self.value = token.value
+        self.op = token.type
+
+class ArrNode():
+    def __init__(self, token):
+        self.value = token.value
+        self.op = token.type
+
+class VarNode():
+    def __init__(self, token):
+        self.value = token.value
+        self.op = token.type
+
+class BoolNode():
+    def __init__(self, token):
+        self.value = token.value
+        self.op = token.type
+
+class NotNode():
+    def __init__(self, node):
+        self.op = "NOT"
+        self.ap = node
+
+
+class BinopNode():
+# binary operator node 
+    def __init__(self, left, right, op):
+        self.left = left
+        self.right = right
+        self.op = op
+
+
+class BoolopNode():
+# boolean operator node    
+    def __init__(self, left, right, op):
+        self.left = left
+        self.right = right
+        self.op = op
+
+class SkipNode():
+    def __init__(self, token):
+        self.value = token.value
+        self.op = token.type
+
+class AssignNode():
+    def __init__(self, left, right, op):
+        self.left = left
+        self.right = right
+        self.op = op
+
+class CompNode():
+    def __init__(self, left, right, op):
+        self.left = left
+        self.right = right
+        self.op = op
+
+class WhileNode():
+    # condition: while true and while false
+    def __init__(self, cond, wtrue, wfalse):
+        self.cond = cond
+        self.wtrue = wtrue
+        self.wfalse = wfalse
+        self.op = "WHILE"
+
+class IfNode():
+    def __init__(self, cond, iftrue, iffalse):
+        self.cond =cond
+        self.iftrue = iftrue
+        self.iffalse = iffalse
+        self.op = "IF"
+
+class Parser():
+# To verify that the sequence of tokens does indeed correspond to the expected sequence of tokens    
+# Finds the structure in the flat stream of tokens it gets from the lexer 
+
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.state = lexer.state
+        self.current_token = lexer.get_next_token()
+
+    def error(self):
+        raise error("Invalid Syntax for this language")   
+
+    def factor(self):
+        # returns the next integer term / unary operator subtree
+        token = self.current_token
+        
+        if token.type == "MINUS":
+            self.current_token = self.lexer.get_next_token()
+            token = self.current_token
+            token.value = -token.value
+            node = IntNode(token)
+
+        elif token.type == "INT":
+            node = IntNode(token)
+
+        elif token.type == "VAR":
+            node = VarNode(token)
+
+        elif token.type == "ARR":
+            node = ArrNode(token)
+
+        elif token.type == "NOT":
+            self.current_token = self.lexer.get_next_token()
+            if self.current_token.type == "LEFTPAR":
+                self.current_token = self.lexer.get_next_token()
+                node = self.bexpr()
+            elif self.current_token.type == "BOOL":
+                node = BoolNode(self.current_token)
+            else:
+                self.error()
+            node = NotNode(node)
+
+        elif token.type == "BOOL":
+            node = BoolNode(token)
+
+        elif token.type == "LEFTPAR":
+            self.current_token = self.lexer.get_next_token()
+            node = self.bexpr()
+
+        elif token.type == "RIGHTPAR":
+            self.current_token = self.lexer.get_next_token()
+
+        elif token.type == "LEFTCURL":
+            self.current_token = self.lexer.get_next_token()
+            node = self.cexpr()
+
+        elif token.type == "RIGHTCURL":
+            self.current_token = self.lexer.get_next_token()
+
+        elif token.type == "SKIP":
+            node = SkipNode(token)
+
+        elif token.type == "WHILE":
+            self.current_token = self.lexer.get_next_token()
+            cond = self.bexpr()
+            wfalse = SkipNode(Token("SKIP","skip"))
+            if self.current_token.type == "DO":
+                self.current_token = self.lexer.get_next_token()
+                if self.current_token == "LEFTCURL":
+                    wtrue = self.cexpr()
+                else:
+                    wtrue = self.cterm()
+
+            return WhileNode(cond, wtrue, wfalse)
+
+        elif token.type == "IF":
+            self.current_token = self.lexer.get_next_token()
+            cond = self.bexpr()
+            if self.current_token.type == "THEN":
+                self.current_token = self.lexer.get_next_token()
+                iftrue = self.cexpr()
+            if self.current_token.type == "ELSE":
+                self.current_token = self.lexer.get_next_token()
+                iffalse = self.cexpr()
+            return IfNode(cond, iftrue, iffalse)
 
-    def reveal(self):
-        for var_id, var in self.state_dict.items():
-            print("var_id: %2s, type: %4s, value: %4s" % (var_id, var.type(), str(var.eval())))
-
-
-class WhileASTTypeLit(object):
-    desc = 'Abstract Class for integer and boolean type'
-
-    def value(self):
-        raise NotImplementedError
-
-
-class WhileASTExp(object):
-    desc = 'Abstract Class for WHILE AST Expression'
-
-    def eval(self, state):
-        raise NotImplementedError
-
-
-class WhileASTAExp(WhileASTExp):
-    class AExpType(enum.Enum):
-        NotImplemented = 0
-        IntLit = 1
-        IntVar = 2
-        SumExp = 3
-        SubtractExp = 4
-        ProductExp = 5
-
-    desc = 'Abstract Class for WHILE AST Arith Expression'
-    exp_type = AExpType.NotImplemented
-
-    def eval(self, state):
-        raise NotImplementedError
-
-
-class WhileASTAExpIntLit(WhileASTAExp):
-    desc = 'Aexp for integer literal'
-    exp_type = WhileASTAExp.AExpType.IntLit
-
-    def __init__(self, n):
-        self.int_value = n
-
-    def eval(self, state):
-        return self.int_value, state
-
-
-class WhileASTAExpVar(WhileASTAExp):
-    desc = 'Aexp for integer literal'
-    exp_type = WhileASTAExp.AExpType.IntVar
-    var_id = None
-
-    def __init__(self, var_id):
-        self.var_id = var_id
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return state.eval_var(self.var_id), state
-
-
-class WhileASTAExpSum(WhileASTAExp):
-    desc = 'Aexp for sum'
-    exp_type = WhileASTAExp.AExpType.SumExp
-    exp1 = None
-    exp2 = None
-
-    def __init__(self, exp1, exp2):
-        self.exp1 = exp1
-        self.exp2 = exp2
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return self.exp1.eval(state)[0] + self.exp2.eval(state)[0], state
-
-
-class WhileASTAExpSubtract(WhileASTAExp):
-    desc = 'Aexp for subtract'
-    exp_type = WhileASTAExp.AExpType.SubtractExp
-    exp1 = None
-    exp2 = None
-
-    def __init__(self, exp1, exp2):
-        self.exp1 = exp1
-        self.exp2 = exp2
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return self.exp1.eval(state)[0] - self.exp2.eval(state)[0], state
-
-
-class WhileASTAExpProduct(WhileASTAExp):
-    desc = 'Aexp for product'
-    exp_type = WhileASTAExp.AExpType.ProductExp
-    exp1 = None
-    exp2 = None
-
-    def __init__(self, exp1, exp2):
-        self.exp1 = exp1
-        self.exp2 = exp2
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return self.exp1.eval(state)[0] * self.exp2.eval(state)[0], state
-
-
-class WhileASTBExp(WhileASTExp):
-    class BExpType(enum.Enum):
-        NotImplemented = 0
-        BoolLit = 1
-        Equality = 2
-        LessThan = 3
-        LogicNot = 4
-        LogicOr = 5
-        LogicAnd = 6
-        BoolVar = 7
-
-    desc = 'Abstract Class for WHILE AST Boolean Expression'
-    exp_type = BExpType.NotImplemented
-
-    def eval(self, state):
-        raise NotImplementedError
-
-
-class WhileASTBExpVar(WhileASTBExp):
-    desc = 'Bexp for bool variable'
-    exp_type = WhileASTBExp.BExpType.BoolVar
-    var_id = None
-
-    def __init__(self, var_id):
-        self.var_id = var_id
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return state.eval_var(self.var_id), state
-
-
-class WhileASTBExpBoolLit(WhileASTBExp):
-    desc = 'Bexp for boolean literal'
-    exp_type = WhileASTBExp.BExpType.BoolLit
-
-    def __init__(self, boolean):
-        self.bool_value = boolean
-
-    def eval(self, state):
-        return self.bool_value, state
-
-
-# class WhileASTAExpVar(WhileASTAExp):
-#     desc = 'Aexp for integer literal'
-#     exp_type = WhileASTAExp.AExpType.IntLit
-#     var_id = None
-#
-#     def __init__(self, var_id):
-#         self.var_id = var_id
-#
-#     def eval(self, state):
-#         """
-#         :param state: WhileASTState
-#         :return:
-#         """
-#         return state.eval_var(self.var_id), state
-
-
-class WhileASTBExpEqual(WhileASTBExp):
-    desc = 'Bexp for equality'
-    exp_type = WhileASTBExp.BExpType.Equality
-    exp1 = None
-    exp2 = None
-
-    def __init__(self, exp1, exp2):
-        self.exp1 = exp1
-        self.exp2 = exp2
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return self.exp1.eval(state)[0] == self.exp2.eval(state)[0], state
-
-
-class WhileASTBExpLT(WhileASTBExp):
-    desc = 'Bexp for less than'
-    exp_type = WhileASTBExp.BExpType.LessThan
-    exp1 = None
-    exp2 = None
-
-    def __init__(self, exp1, exp2):
-        self.exp1 = exp1
-        self.exp2 = exp2
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return self.exp1.eval(state)[0] < self.exp2.eval(state)[0], state
-
-
-class WhileASTBExpNot(WhileASTBExp):
-    desc = 'Bexp for logical not'
-    exp_type = WhileASTBExp.BExpType.LogicNot
-    exp = None
-
-    def __init__(self, exp):
-        self.exp = exp
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return not self.exp.eval(state)[0], state
-
-
-class WhileASTBExpOr(WhileASTBExp):
-    desc = 'Bexp for logical or'
-    exp_type = WhileASTBExp.BExpType.LogicOr
-    exp1 = None
-    exp2 = None
-
-    def __init__(self, exp1, exp2):
-        self.exp1 = exp1
-        self.exp2 = exp2
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return self.exp1.eval(state)[0] or self.exp2.eval(state)[0], state
-
-
-class WhileASTBExpAnd(WhileASTBExp):
-    desc = 'Bexp for logical and'
-    exp_type = WhileASTBExp.BExpType.LogicAnd
-    exp1 = None
-    exp2 = None
-
-    def __init__(self, exp1, exp2):
-        self.exp1 = exp1
-        self.exp2 = exp2
-
-    def eval(self, state):
-        """
-        :param state: WhileASTState
-        :return:
-        """
-        return self.exp1.eval(state)[0] and self.exp2.eval(state)[0], state
-
-
-class WhileASTComm(object):
-    class CommType(enum.Enum):
-        NotImplemented = 0
-        Skip = 1
-        Assign = 2
-        Sequence = 3
-        IfStatement = 4
-        WhileStatement = 5
-
-    comm_type = CommType.NotImplemented
-
-    def exec(self, state):
-        raise NotImplementedError
-
-
-class WhileASTCommSkip(WhileASTComm):
-    comm_type = WhileASTComm.CommType.Skip
-
-    def exec(self, state):
-        return state
-
-
-class WhileASTCommAssign(WhileASTComm):
-    comm_type = WhileASTComm.CommType.Assign
-    var_id = None
-    exp = None
-
-    def __init__(self, var_id, exp):
-        self.var_id = var_id
-        self.exp = exp
-
-    def exec(self, state):
-        value = self.exp.eval(state)[0]
-        state.assign_var(self.var_id, value)
-        return state
-
-
-class WhileASTCommSeq(WhileASTComm):
-    comm_type = WhileASTComm.CommType.Sequence
-    comm_A = None
-    comm_B = None
-
-    def __init__(self, comm_a, comm_b):
-        self.comm_A = comm_a
-        self.comm_B = comm_b
-
-    def exec(self, state):
-        state_prime = self.comm_A.exec(state)
-        return self.comm_B.exec(state_prime)
-
-
-# if b then c1 else c2 for c1,c2 ∈ Comm and b∈Bexp
-class WhileASTCommIf(WhileASTComm):
-    comm_type = WhileASTComm.CommType.IfStatement
-    bool_b = None
-    comm_1 = None
-    comm_2 = None
-
-    def __init__(self, b, c1, c2):
-        self.bool_b = b
-        self.comm_1, self.comm_2 = c1, c2
-
-    def exec(self, state):
-        if self.bool_b.eval(state)[0]:
-            return self.comm_1.exec(state)
         else:
-            return self.comm_2.exec(state)
+            self.error()
 
+        self.current_token = self.lexer.get_next_token()      
+        return node
+    
+    def aterm(self):
+        node = self.factor()
+        while self.current_token.type == 'MUL':
+            ttype = self.current_token.type
+            self.current_token = self.lexer.get_next_token()
+            node = BinopNode(left = node, right = self.factor(), op = ttype)
+        return node
+        
+    def aexpr(self):
+        node = self.aterm()  
+        while self.current_token.type in ("PLUS", "MINUS"):
+            #print(self.current_token)
+            ttype = self.current_token.type
+            self.current_token = self.lexer.get_next_token()
+            node = BinopNode(left = node, right = self.aterm(), op = ttype)
+        return node
 
-# while b do c for c ∈ Comm and b ∈ Bexp
-class WhileASTCommWhile(WhileASTComm):
-    comm_type = WhileASTComm.CommType.WhileStatement
-    bool_b = None
-    body_comm = None
+    #this returns a node that represent Aexpr for debugging
+    def aparse(self):
+        return self.aexpr()
 
-    def __init__(self, b, comm):
-        self.bool_b = b
-        self.body_comm = comm
+    def bterm(self):
+        node = self.aexpr()
+        if self.current_token.type in ("EQUAL","LESSTHAN"):
+            #print(self.current_token)
+            ttype = self.current_token.type
+            self.current_token = self.lexer.get_next_token()
+            node = BoolopNode(left = node, right = self.aexpr(), op = ttype)
+        return node
+    
+    def bexpr(self):
+        node = self.bterm()
+        while self.current_token.type in ("AND", "OR"):
+            #print(self.current_token)
+            ttype = self.current_token.type
+            self.current_token = self.lexer.get_next_token()
+            node = BinopNode(left = node, right = self.bterm(), op = ttype)
+        return node
 
-    def exec(self, state):
-        condition = self.bool_b.eval(state)[0]
-        if condition:
-            next_s = self.body_comm.exec(state)
-            return self.exec(next_s)
+    #this returns a node that represents combination of aexpr and bexpr
+    def bparse(self):
+        return self.bexpr()
+
+    def cterm(self):
+        node = self.bexpr()
+        if self.current_token.type == "ASSIGN":
+            #print(self.current_token)
+            ttype = self.current_token.type
+            self.current_token = self.lexer.get_next_token()
+            node = AssignNode(left = node, right = self.bexpr(), op = ttype)
+        return node
+
+    def cexpr(self):
+        node = self.cterm()
+        while self.current_token.type == "COMP":
+            #print(self.current_token)
+            ttype = self.current_token.type
+            self.current_token = self.lexer.get_next_token()
+            node = CompNode(left = node, right = self.cterm(), op = ttype)
+        return node
+
+    #this returns a node that represents combination of aexpr and bexpr
+    def cparse(self):
+        return self.cexpr()
+
+#General helper function for evaluating AST.
+def create_dict(var, value):
+    return dict([tuple([var,value])])
+
+#Helper fuctions to do match:
+def switch(op):
+    cases = {
+    "PLUS":'+', 
+    "MINUS":'-', 
+    "MUL":'*',
+    "EQUAL":'=',
+    "LESSTHAN":'<', 
+    "AND":'∨', 
+    "OR":'∧', 
+    "ASSIGN":':=',
+    "COMP":';',
+    "NOT":'¬',
+    }
+    return cases.get(op, "You sure?")
+
+#Helper function that prints recursively
+def print_command(node):
+    if node.op in ("INT", "ARR", "VAR", "SKIP"):
+        return node.value
+    elif node.op in ("BOOL"):
+        return str(node.value).lower()
+    elif node.op in ("PLUS", "MINUS", "MUL","EQUAL","LESSTHAN", "AND", "OR"):
+        return ''.join(['(',str(print_command(node.left)), switch(node.op), str(print_command(node.right)), ')'])
+    elif node.op in ("NOT"):
+        return ''.join([switch(node.op),str(print_command(node.ap))])
+    elif node.op in ("ASSIGN"):
+        return ' '.join([str(print_command(node.left)), switch(node.op), str(print_command(node.right))])
+    elif node.op in ("COMP"):
+        return ' '.join([''.join([str(print_command(node.left)), switch(node.op)]), str(print_command(node.right))]) 
+    elif node.op in ("WHILE"):
+        return ' '.join(['while',str(print_command(node.cond)),'do', '{', str(print_command(node.wtrue)), '}'])
+    elif node.op in ("IF"):
+        return ' '.join(['if',str(print_command(node.cond)),'then', '{', str(print_command(node.iftrue)), '}', 'else', '{', str(print_command(node.iffalse)) , '}'])
+    else:
+        raise Exception("Pretty sure you made a mistake")
+
+#helper class to do string manipulation
+class Sstr():
+    def __init__(self, string):
+        self.string = string
+    def __add__(self, other):
+        return (self.string + other.string)
+    def __sub__(self, other):
+        return (self.string.replace(other.string, "", 1))
+       #return (re.sub(other.string,'',self.string, count=1))
+#root = parsewhile.test("if (true) then x:=1 else zir9 := 2")
+#parsewhile.evaluate_print(root.ast, root.state, root.print_var, root.print_state, root.print_step)
+
+def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
+    state = state
+    node = ast
+
+    print_var = print_var
+
+    print_state = print_state
+    print_step = print_step
+    init_step = init_step
+
+    if node.op in ("INT", "ARR", "BOOL"):
+        return node.value
+    elif node.op == "VAR":
+        if node.value in state:
+            return state[node.value]
         else:
-            return state
+            state = state.update(create_dict(node.value, 0))
+            return 0
+    elif node.op == "SKIP":
+        state = state
+        temp_var = set(print_var)
+        temp_state = copy.deepcopy(state)
+        temp_state = dict((var, temp_state[var]) for var in temp_var)
+        print_state.append(temp_state)
+        temp_step = Sstr(str(print_command(node)))
+        print_step.append([Sstr(Sstr(init_step) - temp_step) - Sstr("; ")])
+        init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
+    elif node.op == "COMP":
+        evaluate_print(node.left, state, print_var, print_state, print_step, init_step)
+        temp_var = set(print_var)
+        temp_state = copy.deepcopy(state)
+        temp_state = dict((var, temp_state[var]) for var in temp_var)
+        print_state.append(temp_state)
+        temp_step = Sstr(str(print_command(node.left)))
+        print_step.append([str(Sstr(Sstr(init_step) - temp_step) - Sstr("; "))])
+        init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
+        evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+    elif node.op =="ASSIGN":
+        var = node.left.value
+        print_var.append(var)
+        if var in state:
+            state[var] = evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+        else:
+            state.update(create_dict(var, evaluate_print(node.right, state, print_var, print_state, print_step, init_step)))
+        temp_var = set(print_var)
+        temp_state = copy.deepcopy(state)
+        temp_state = dict((var, temp_state[var]) for var in temp_var)
+        print_state.append(temp_state)
+        temp_step = Sstr(str(print_command(node)))
+        print_step.append(["skip; "+ str(Sstr(Sstr(init_step) - temp_step) - Sstr("; "))])
+        init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
 
-def testA(state):
-    """
-    Test A
-    testee:
-        Storage: WhileASTState, WhileASTVar
-        Literal: WhileASTIntLit, WhileASTBoolLit
-        AExp: WhileASTAExpIntLit, WhileASTAExpVar, WhileASTAExpSum, WhileASTAExpProduct
-        BExp: WhileASTBExpAnd, WhileASTBExpEqual
-        Comm: WhileASTCommAssign, WhileASTCommIf, WhileASTCommSeq
-    Program TestA:
-    var x = 3
-    var y = 5
-    var x = 6
-    if (x == y and True):
-        x = x - y
+    elif node.op == "PLUS":
+        try:
+            return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)+evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+        except TypeError:
+            print("This operation is not supported but do you know that cats can rotate their ears 180 degrees?")
+    elif node.op == "MINUS":
+        try:
+            return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)-evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+        except TypeError:
+            print("This operation is not supported but do you know that meows are not innate cat language? They developed them to communicate with humans!")
+    elif node.op == "MUL":
+        try:
+            return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)*evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+        except TypeError:
+            print("This operation is not supported but do you know that the hearing of the average cat is at least five times keener than that of a human adult?")
+    elif node.op == "NOT":
+        return not evaluate_print(node.ap, state, print_var, print_state, print_step, init_step)
+        #print_state.append(copy.deepcopy(state))
+    elif node.op =="EQUAL":
+        #print("equal", state)
+        return evaluate_print(node.left, state, print_var, print_state, print_step, init_step) == evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+        #print_state.append(copy.deepcopy(state))
+    elif node.op =="LESSTHAN":
+        #print("LESSTHAN", state)
+        #print_state.append(copy.deepcopy(state))
+        return evaluate_print(node.left, state, print_var, print_state, print_step, init_step) < evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+    elif node.op =="AND":
+        #print("and", state)
+        #print_state.append(copy.deepcopy(state))
+        return (evaluate_print(node.left, state, print_var, print_state, print_step, init_step) and evaluate_print(node.right, state, print_var, print_state, print_step, init_step))
+    elif node.op =="OR":
+        #print("or",state)
+        #print_state.append(copy.deepcopy(state))
+        return (evaluate_print(node.left, state, print_var, print_state, print_step, init_step) or evaluate_print(node.right, state, print_var, print_state, print_step, init_step))
+    elif node.op == "WHILE":
+        cond = node.cond
+        wtrue = node.wtrue
+        wfalse = node.wfalse
+        sentinel = 0
+        while evaluate_print(cond, state, print_var, print_state, print_step, init_step):
+            sentinel = sentinel+1
+            if sentinel > 60000-1:
+                break
+            temp_var = set(print_var)
+            temp_state = copy.deepcopy(state)
+            temp_state = dict((var, temp_state[var]) for var in temp_var)
+            print_state.append(temp_state)
+            init_step = init_step.replace(print_command(node), str(print_command(node.wtrue)+'; '+print_command(node)))
+            print_step.append([init_step])
+            evaluate_print(wtrue, state, print_var, print_state, print_step, init_step)
+            temp_var = set(print_var)
+            temp_state = copy.deepcopy(state)
+            temp_state = dict((var, temp_state[var]) for var in temp_var)
+            print_state.append(temp_state)
+            temp_step = Sstr(str(print_command(node.wtrue)))            # node = whole while node
+            print_step.append([Sstr(Sstr(init_step) - temp_step) - Sstr("; ")])
+            init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
+        temp_var = set(print_var)
+        temp_state = copy.deepcopy(state)
+        temp_state = dict((var, temp_state[var]) for var in temp_var)
+        print_state.append(temp_state)
+        temp_step = Sstr(print_command(node))
+        print_step.append(["skip; "+ (Sstr(Sstr(init_step) - temp_step) - Sstr("; "))])
+        init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
+    elif node.op =="IF":
+        cond = node.cond
+        iftrue = node.iftrue
+        iffalse = node.iffalse
+        if evaluate_print(cond, state, print_var, print_state, print_step, init_step):
+            #only record the state before execution
+            temp_var = set(print_var)
+            temp_state = copy.deepcopy(state)
+            temp_state = dict((var, temp_state[var]) for var in temp_var)
+            print_state.append(temp_state)
+            temp_step = Sstr(str(print_command(node)))
+            print_step.append([str(print_command(node.iftrue)) + (Sstr(init_step) - temp_step)])
+            init_step = str(print_command(node.iftrue)) + (Sstr(init_step) - temp_step)
+            evaluate_print(iftrue, state, print_var, print_state, print_step, init_step)
+        else:
+            temp_var = set(print_var)
+            temp_state = copy.deepcopy(state)
+            temp_state = dict((var, temp_state[var]) for var in temp_var)
+            print_state.append(temp_state)
+            temp_step = Sstr(str(print_command(node)))
+            print_step.append([str(print_command(node.iffalse)) + (Sstr(init_step) - temp_step)])
+            init_step = str(print_command(node.iffalse)) + (Sstr(init_step) - temp_step)
+            evaluate_print(iffalse, state, print_var, print_state, print_step, init_step)
     else:
-        x = y + 100; y = y * 2
+        raise Exception("error in evaluation")
 
-    Result: x = 105, y = 10
-    """
-    state = WhileASTCommAssign('x', WhileASTAExpIntLit(3)).exec(state)              # var x = 3
-    state = WhileASTCommAssign('y', WhileASTAExpIntLit(5)).exec(state)              # var y = 5
-    state = WhileASTCommAssign('x', WhileASTAExpIntLit(6)).exec(state)              # var x = 6
-    condi_1 = WhileASTBExpEqual(WhileASTAExpVar('x'), WhileASTAExpVar('y'))         # x == y
-    condi_2 = WhileASTBExpBoolLit(True)                                             # True
-    exp_1 = WhileASTAExpSubtract(WhileASTAExpVar('x'), WhileASTAExpVar('y'))       # x - y
-    comm_1 = WhileASTCommAssign('x', exp_1)                                         # x = x - y
-    exp_2 = WhileASTAExpSum(WhileASTAExpVar('y'), WhileASTAExpIntLit(100))          # y + 100
-    comm_2 = WhileASTCommAssign('x', exp_2)                                         # x = y + 100
-    exp_3 = WhileASTAExpProduct(WhileASTAExpVar('y'), WhileASTAExpIntLit(2))        # y * 2
-    comm_3 = WhileASTCommAssign('y', exp_3)                                         # y = y * 2
-    comm_seq = WhileASTCommSeq(comm_2, comm_3)                                      # x = y + 100; y = y * 2
-    state = WhileASTCommIf(WhileASTBExpAnd(condi_1, condi_2), comm_1, comm_seq).exec(state)
-    return state
+class Interpreter():
+    def __init__(self, parser):
+        self.state = parser.state
+        self.ast = parser.cparse()      # load AST from root
+        self.print_var = []
+        self.print_state = []
+        self.print_step = []
+        self.init_step = print_command(self.ast)
+    def error(self):
+        raise Exception("This input is invalid")
+    def visit(self):
+        return evaluate_print(self.ast, self.state, self.print_var, self.print_state, self.print_step, self.init_step)
 
+#returns an interpreter object for debugging
+def test(text):
+    a = Lexer(text)
+    b = Parser(a)
+    c = Interpreter(b)
+    return c
 
-def testB(state):
-    """
-    Test B
-    testee:
-        Storage: WhileASTState, WhileASTVar
-        Literal: WhileASTIntLit
-        AExp: WhileASTAExpIntLit, WhileASTAExpVar, WhileASTAExpSum
-        BExp: WhileASTBExpLT, WhileASTBExpEqual, WhileASTBExpNot
-        Comm: WhileASTCommWhile, WhileASTCommIf
+###############################################################################
+#                                                                             #
+#   MAIN                                                                      #
+#                                                                             #
+###############################################################################
 
-    Program TestB:
-    while (x < 5):
-        x = x + 1
-    if (not (x == 5)):
-        x = -1
-    else:
-        skip
-    """
-    condi_1 = WhileASTBExpLT(WhileASTAExpVar('x'), WhileASTAExpIntLit(5))           # x < 5
-    exp_1 = WhileASTAExpSum(WhileASTAExpVar('x'), WhileASTAExpIntLit(1))            # x + 1
-    comm_1 = WhileASTCommAssign('x', exp_1)                                         # x = x + 1
-    state = WhileASTCommWhile(condi_1, comm_1).exec(state)                          # while (x < 5): x = x + 1
+def main():
 
-    condi_2 = WhileASTBExpNot(WhileASTBExpEqual(WhileASTAExpVar('x'), WhileASTAExpIntLit(5)))   # not(x==5)
-    comm_2 = WhileASTCommAssign('x', WhileASTAExpIntLit(-1))                        # x = -1
-    state = WhileASTCommIf(condi_2, comm_2, WhileASTCommSkip()).exec(state)         # if (not(x == 5)): x = -1 else: skip
-    return state
+    while True:
+        try:
+            text = input('')
+            #line = line.strip()
+            #line = " ".join(line.split())
+        except EOFError:
+            break
+        if not text:
+            continue
 
+        #print(text)
+        lexer = Lexer(text)
+        parser = Parser(lexer)
+        interpreter = Interpreter(parser)
+        interpreter.visit()
+        step_list = interpreter.print_step
+        step_list = [item for sublist in step_list for item in sublist]
+        state_list = interpreter.print_state
+        if text[0:5] == "skip;" or text[0:6] == "skip ;":
+            del step_list[0]
+            del state_list[0]
+        
+        step_list[-1] = 'skip'
 
-def testC(state):
-    """
-    Test C
-    testee:
-        Storage: WhileASTState, WhileASTVar
-        Literal: WhileASTIntLit, WhileASTBoolLit
-        AExp: WhileASTAExpIntLit, WhileASTAExpVar, WhileASTAExpSubtract
-        BExp: WhileASTBExpLT, WhileASTBExpNot, WhileASTBExpVar
-        Comm: WhileASTCommWhile, WhileASTCommIf
+        if len(state_list) > 10000:
+            state_list = state_list[0:10000]
+            step_list = step_list[0:10000]
+        
+        if len(state_list) ==1 and state_list[0] == {} and text[0:4] == "skip": 
+            print('')
+        else:
+            for i in range(len(state_list)):
+                output_string = []
+                for key in sorted(state_list[i]):
+                    separator = " "
+                    output_string.append(separator.join([key, "→", str(state_list[i][key])]))
 
-    Program TestC:
-    if (x < 0):
-        var pos = False
-    else:
-        var pos = True
-    if (not(pos)):
-        x = 0 - x
-    else:
-        skip
-    """
-    condi_1 = WhileASTBExpLT(WhileASTAExpVar('x'), WhileASTAExpIntLit(0))           # x < 0
-    comm_1 = WhileASTCommAssign('pos', WhileASTBExpBoolLit(False))                  # var pos = False
-    comm_2 = WhileASTCommAssign('pos', WhileASTBExpBoolLit(True))                   # var pos = True
-    state = WhileASTCommIf(condi_1, comm_1, comm_2).exec(state)                     # if (x < 0): var pos = False
-                                                                                    # else: var pos = True
-    condi_2 = WhileASTBExpNot(WhileASTBExpVar('pos'))  # not(pos)
-    exp_1 = WhileASTAExpSubtract(WhileASTAExpIntLit(0), WhileASTAExpVar('x'))       # 0 - x
-    comm_3 = WhileASTCommAssign('x', exp_1)                                         # x = 0 - x
-    state = WhileASTCommIf(condi_2, comm_3, WhileASTCommSkip()).exec(state)           # if (not(pos)): x = 0 - x
-                                                                                    # else: skip
-    return state
-
+                state_string = ''.join(["{", ", ".join(output_string), "}"])
+                step_string = ' '.join(['⇒', step_list[i]])
+                #print(step_string, state_string, sep = ', ')
+                print(state_string)
+            
 
 if __name__ == '__main__':
-    """
-    Program TestA:
-    var x = 3
-    var y = 5
-    var x = 6
-    if (x == y and True):
-        x = x - y
-    else:
-        x = y + 100; y = y * 2
-
-    Result: x = 105, y = 10
-    """
-    print('Test A:')
-    testA_state = testA(WhileASTState())
-    testA_state.reveal()  # var x = 105, var y = 10
-    print()
-
-    """
-    Program TestB:
-    while (x < 5):
-        x = x + 1
-    if (not (x == 5)):
-        x = -1
-    else:
-        skip
-    """
-    print('Test B1:')
-    state_x_0 = WhileASTState({'x': 0})
-    print('before:')
-    state_x_0.reveal()
-    testB1_state = testB(state_x_0)
-    print('after:')
-    state_x_0.reveal()
-    print()
-
-    print('Test B2:')
-    state_x_10 = WhileASTState({'x': 10})
-    print('before:')
-    state_x_10.reveal()
-    testB2_state = testB(state_x_10)
-    print('after:')
-    testB2_state.reveal()
-    print()
-
-    """
-    Program TestC (abs):
-    if (x < 0):
-        var pos = False
-    else:
-        var pos = True
-    if (not(pos)):
-        x = 0 - x
-    else:
-        skip
-    """
-    print('Test C1:')
-    state_x_neg = WhileASTState({'x': -10})
-    print('before:')
-    state_x_neg.reveal()
-    testC1_state = testC(state_x_neg)
-    print('after:')
-    testC1_state.reveal()
-    print()
-
-    print('Test C2:')
-    state_x_pos = WhileASTState({'x': 100})
-    print('before:')
-    state_x_pos.reveal()
-    testC2_state = testC(state_x_pos)
-    print('after:')
-    testC2_state.reveal()
-    print()
+    main()
