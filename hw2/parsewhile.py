@@ -1,112 +1,121 @@
-#There are three types syntaxs Aexpr Bexpr and Satements
-#All token types for INT, VAR, BOOL, ARR, PLUS, MINUS, MUL, LESSTHAN, EQUAL, NOT, AND, OR, SKIP, ASSIGN, WHILE, { , }, IF, THEN, ELSE ;
-
-#Additonal feature is array
-#states managed by python dictionary
-
-#uncomment this when it is all done.
 import sys
 import copy
 sys.tracebacklimit = 0
 
-#lexer
-#test string: "a := 369; b := 1107; a:= a+b*c-d; while ¬(a=b) do { if a < b then b := b - a else a := a - b}"
+###############################################################################
+#                                                                             #
+#  1. LEXER                                                                   #
+#     To turn the input of characters into a stream of tokens                 #
+#                                                                             #
+###############################################################################
+
+# 3 Token types: Aexpr Bexpr Commands/Satements
+# EOF token = no more input left for lexical analysis
+# All token types for INT, VAR, BOOL, ARR, PLUS, MINUS, MUL, LESSTHAN, EQUAL, NOT, AND, OR, SKIP, ASSIGN, WHILE, { , }, IF, THEN, ELSE ;
 class Token():
+
     def __init__(self, type, value):
-        self.type = type
-        self.value = value
+        self.type = type        # one of the defined token types
+        self.value = value      # actual token value: 0, 1, 2, '+', '(', None
+
     def __repr__(self):
         return 'Token({type}, {value})'.format(type = self.type, value = self.value)
 
+
 class Lexer():
+
     def __init__(self, text):
         self.state = {}
         self.text = text
-        #keep track of reading 
         self.pos = 0
         self.current_char = self.text[self.pos]
-    #error handling
+
     def error(self):
-        raise Exception("This input is not supported")
-    #increase the cursor to the next position, if valid then set current_char to the new char
-    def next(self):
+        raise Exception("INVALID CHARACTER!")
+
+    def update_current_character(self):
         self.pos += 1
-        #check if it is the end of line
+        # check for end of user input
         if self.pos > len(self.text)-1:
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
+
     def num(self):
         result = ''
         while self.current_char is not None and self.current_char.isdigit():
             result = result + self.current_char
-            self.next()
+            self.update_current_character()
         return int(result)
+
     #integer arrays reprented by lists
     def arr(self):
         result = ''
-        self.next()
+        self.update_current_character()
         while self.current_char is not None and self.current_char != "]":
             result = result+self.current_char
-            self.next()
-        self.next()
+            self.update_current_character()
+        self.update_current_character()
         result = [int(t) for t in result.split(',')]
         return result
+
     def assign(self):
         result = ''
         while self.current_char is not None and self.current_char in (':', '='):
             result = result + self.current_char
-            self.next()
+            self.update_current_character()
         if result == ":=":
             return "assign"
         else:
             self.error()   
+
     def tokenize(self):
+    # gets next token    
         while self.current_char is not None:
             if self.current_char.isspace():
-                self.next()
+                self.update_current_character()
             if self.current_char.isdigit():
                 return Token("INT", self.num())
             if self.current_char == "[":
                 return Token("ARR", self.arr())
             if self.current_char == "+":
-                self.next()
+                self.update_current_character()
                 return Token('PLUS', "+")
             if self.current_char == "-":
-                self.next()
+                self.update_current_character()
                 return Token("MINUS", "-")
             if self.current_char == "*":
-                self.next()
+                self.update_current_character()
                 return Token("MUL", "*")
             if self.current_char == ";":
-                self.next()
+                self.update_current_character()
                 return Token('COMP', ";")
             if self.current_char == "=":
-                self.next()
+                self.update_current_character()
                 return Token('EQUAL', "=")
             if self.current_char == "<":
-                self.next()
+                self.update_current_character()
                 return Token("LESSTHAN", "<")
             if self.current_char == "¬":
-                self.next()
+                self.update_current_character()
                 return Token('NOT', "¬")
             if self.current_char == "∧":
-                self.next()
+                self.update_current_character()
                 return Token('AND', "∧")
             if self.current_char == "∨":
-                self.next()
+                self.update_current_character()
                 return Token('OR', "∨")
             if self.current_char == "{":
-                self.next()
+                self.update_current_character()
                 return Token("LEFTCURL", "{")
             if self.current_char == "}":
-                self.next()
+                self.update_current_character()
                 return Token("RIGHTCURL", "}")
             if self.current_char == "(":
-                self.next()
+                self.update_current_character()
                 return Token("LEFTPAR", "(")
             if self.current_char == ")":
-                self.next()
+                self.update_current_character()
                 return Token("RIGHTPAR", ")")
             if self.current_char == ":":
                 return Token("ASSIGN", self.assign())
@@ -115,7 +124,7 @@ class Lexer():
                 result = ''
                 while self.current_char is not None and (self.current_char.isalpha() or self.current_char.isdigit()):
                     result = result+self.current_char
-                    self.next()
+                    self.update_current_character()
                 if result == "while":
                     return Token("WHILE", "while")
                 elif result == "skip":
@@ -137,61 +146,80 @@ class Lexer():
             self.error()
         return(Token("EOF", None))
 
-#create all the needed nodes
+
+###############################################################################
+#                                                                             #
+#  2. PARSER                                                                  #
+#     To build AST from the tokens                                            #
+#                                                                             #
+###############################################################################
+
 class IntNode():
     def __init__(self, token):
         self.value = token.value
         self.op = token.type
+
 class ArrNode():
     def __init__(self, token):
         self.value = token.value
         self.op = token.type
+
 class VarNode():
     def __init__(self, token):
         self.value = token.value
         self.op = token.type
+
 class BoolNode():
     def __init__(self, token):
         self.value = token.value
         self.op = token.type
+
 class NotNode():
     def __init__(self, node):
         self.op = "NOT"
         self.ap = node
-#For all the Aexpr operations
+
+
 class BinopNode():
+# binary operator node 
     def __init__(self, left, right, op):
         self.left = left
         self.right = right
         self.op = op
-#For all the Bexpr operations
+
+
 class BoolopNode():
+# boolean operator node    
     def __init__(self, left, right, op):
         self.left = left
         self.right = right
         self.op = op
+
 class SkipNode():
     def __init__(self, token):
         self.value = token.value
         self.op = token.type
+
 class AssignNode():
     def __init__(self, left, right, op):
         self.left = left
         self.right = right
         self.op = op
+
 class CompNode():
     def __init__(self, left, right, op):
         self.left = left
         self.right = right
         self.op = op
+
 class WhileNode():
-    #should be a condition, while true and while false
+    # condition: while true and while false
     def __init__(self, cond, wtrue, wfalse):
         self.cond = cond
         self.wtrue = wtrue
         self.wfalse = wfalse
         self.op = "WHILE"
-#just like while
+
 class IfNode():
     def __init__(self, cond, iftrue, iffalse):
         self.cond =cond
@@ -199,13 +227,15 @@ class IfNode():
         self.iffalse = iffalse
         self.op = "IF"
 
-#lexer tokenize everything with the proper token, each time object.tokenize is called, the next value gets tokenized
-#Parser should parse out a AST.
 class Parser():
+# To verify that the sequence of tokens does indeed correspond to the expected sequence of tokens    
+# Finds the structure in the flat stream of tokens it gets from the lexer 
+
     def __init__(self, lexer):
         self.lexer = lexer
         self.state = lexer.state
         self.current_token = lexer.tokenize()
+
     def error(self):
         raise error("Invalid Syntax for this language")   
 
@@ -215,21 +245,16 @@ class Parser():
         if token.type == "MINUS":
             self.current_token = self.lexer.tokenize()
             token = self.current_token
-            #print('first',token.value)
             token.value = -token.value
-            #print(token.value)
             node = IntNode(token)
         elif token.type == "INT":
             node = IntNode(token)
-            #print(node.value)
         elif token.type == "VAR":
             node = VarNode(token)
         elif token.type == "ARR":
             node = ArrNode(token)
         elif token.type == "NOT":
-            #print("got to not")
             self.current_token = self.lexer.tokenize()
-            #print(self.current_token)
             if self.current_token.type == "LEFTPAR":
                 self.current_token = self.lexer.tokenize()
                 node = self.bexpr()
@@ -613,7 +638,8 @@ def main():
 
             state_string = ''.join(["{", ", ".join(output_string), "}"])
             step_string = ' '.join(['⇒', step_list[i]])
-            print(step_string, state_string, sep = ', ')
+            #print(step_string, state_string, sep = ', ')
+            print(state_string)
             
 
 if __name__ == '__main__':
