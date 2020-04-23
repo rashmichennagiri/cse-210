@@ -80,7 +80,7 @@ public class Parser {
 			
 			Expression initializer = null;
 			
-			if( matchNextToken(TokenType.ASSIGNMENT) && matchNextToken(TokenType.EQUAL)) {
+			if( matchNextToken(TokenType.ASSIGNMENT)) {
 				initializer = expression();
 			}
 			
@@ -103,8 +103,32 @@ public class Parser {
 	 * @throws WhileInterpreterException 
 	 */
 	private Expression expression() throws WhileInterpreterException {
-		return equality();
+		return assignment();
 	}
+	
+	
+	/**
+	 * 
+	 * @return
+	 * @throws WhileInterpreterException 
+	 */
+	private Expression assignment() throws WhileInterpreterException {
+		Expression ex = equality();
+		
+		if( matchNextToken(TokenType.ASSIGNMENT)) {
+			Token equals = getPreviousToken();
+			Expression value = assignment();
+			
+			if( ex instanceof Expression.Variable ) {
+				Token name = ((Expression.Variable)ex).name;
+				return new Expression.Assign(name, value);
+			}
+			
+			throw new WhileInterpreterException(equals, "Invalid assignment target");
+		}
+		return ex;
+	}
+	
 
 	/**
 	 * equality -> comparison (= comparison)*
@@ -218,8 +242,8 @@ public class Parser {
 			return new Expression.Grouping(ex);
 		}
 		
-		if( matchNextToken(TokenType.IDENTIFIER))
-			return new Expression.Variable(getPreviousToken()); 
+		//if( matchNextToken(TokenType.IDENTIFIER))
+		//	return new Expression.Variable(getPreviousToken(),null );  //TODO
 
 		throw new WhileInterpreterException(getCurrentToken(), "EXPRESSION EXPECTED");
 	}

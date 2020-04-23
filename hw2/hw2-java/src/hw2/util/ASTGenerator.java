@@ -135,7 +135,9 @@ public class ASTGenerator {
 		
 		// NO SPACES!
 		defineAST(outputDirectory, "Expression",
-				Arrays.asList("Binary : Expression left,Token operator,Expression right",
+				Arrays.asList(
+						"Assign : Token name,Expression value",
+						"Binary : Expression left,Token operator,Expression right",
 						"Grouping : Expression expression", "Literal  : Object value",
 						"Unary    : Token operator,Expression expr",
 						"Variable: Token name,Expression initializer"));

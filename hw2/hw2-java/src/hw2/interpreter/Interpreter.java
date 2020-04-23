@@ -6,6 +6,7 @@ import hw2.WhileInterpreter;
 import hw2.WhileInterpreterException;
 import hw2.lexer.Token;
 import hw2.parser.Expression;
+import hw2.parser.Expression.Assign;
 import hw2.parser.Expression.Binary;
 import hw2.parser.Expression.Grouping;
 import hw2.parser.Expression.Literal;
@@ -24,6 +25,9 @@ import hw2.parser.Statement.Var;
 public class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
 
+	private Environment env = new Environment();
+	
+	
 	/*
 	 * public void interpret(Expression expr) { Object value =
 	 * evaluateExpression(expr); System.out.println( stringify(value) ); }
@@ -125,7 +129,16 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
 	
 	@Override
 	public Object visitVariableExpression(Variable expression) {
-		return null;
+		return env.getVariableValue(expression.name.lexeme);
+	}
+	
+	@Override
+	public Object visitAssignExpression(Assign expression) {
+		
+		Object value = evaluateExpression(expression.value);
+		env.defineVariable(expression.name.lexeme, value);
+		
+		return value;
 	}
 
 
@@ -200,6 +213,13 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
 
 	@Override
 	public Void visitVarStatement(Var st) {
+		Object value = null;
+		
+		if( st.initializer != null)
+			value = evaluateExpression(st.initializer);
+		
+		env.defineVariable(st.name.lexeme, value);
+		
 		return null;
 	}
 
@@ -208,5 +228,8 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
 	public Void visitPrintStatement(Print st) {
 		return null;
 	}
+
+
+
 
 }

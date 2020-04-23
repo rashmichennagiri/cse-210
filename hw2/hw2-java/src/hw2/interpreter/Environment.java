@@ -20,7 +20,7 @@ public class Environment {
 	 * @param value
 	 */
 	public void defineVariable(String name, Object value) {
-		variableStore.put(name, value);
+			variableStore.put(name, value);
 	}
 	
 	public Object getVariableValue(String name) {
