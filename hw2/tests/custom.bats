@@ -1,21 +1,21 @@
 load harness
 
 @test "custom-1" {
-  check '7 + 3 * (10 / (12 / (3 + 1) - 1)) / (2 + 3) - 5 - 3 + (8)' '10.0'
+  check 'while 0 = z * -4 do z := -1' '{z → -1}'
 }
 
 @test "custom-2" {
-  check '5 - - - + - (3 + 4) - +2' '10'
+  check 'while 0 = z * -4 do z := -1' '{z → -1}'
 }
 
 @test "custom-3" {
-  check '7 + (((3 * 2)))' '13'
+  check 'while 0 = z * -4 do z := -1' '{z → -1}'
 }
 
 @test "custom-4" {
-  check '14 + 2 * 3 - 6 / 2' '17.0'
+  check 'if x = 0 ∧ y < 4 then x := 1 else x := 3' '{x → 1}'
 }
 
 @test "custom-5" {
-  check '3' '3'
+  check 'i := 5 ; fact := 1 ; while 0 < i do { fact := fact * i ; i := i - 1 }' '{fact → 120, i → 0}'
 }

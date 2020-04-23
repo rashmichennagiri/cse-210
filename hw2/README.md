@@ -46,7 +46,7 @@ To run test script:
 
 
 To run submitted homework from zip file:
-1. unzip cse210-hw1.zip
+1. unzip cse210-hw2.zip
 2. ./test.sh
 3. You have two options here:
      i. Enter the expression to be evaluated

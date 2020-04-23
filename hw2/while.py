@@ -330,7 +330,6 @@ class Parser():
     def aexpr(self):
         node = self.aterm()  
         while self.current_token.type in ("PLUS", "MINUS"):
-            #print(self.current_token)
             ttype = self.current_token.type
             self.current_token = self.lexer.get_next_token()
             node = BinopNode(left = node, right = self.aterm(), op = ttype)
@@ -352,7 +351,6 @@ class Parser():
     def bexpr(self):
         node = self.bterm()
         while self.current_token.type in ("AND", "OR"):
-            #print(self.current_token)
             ttype = self.current_token.type
             self.current_token = self.lexer.get_next_token()
             node = BinopNode(left = node, right = self.bterm(), op = ttype)
@@ -493,17 +491,17 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
         try:
             return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)+evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
         except TypeError:
-            print("This operation is not supported but do you know that cats can rotate their ears 180 degrees?")
+            print("This operation is not supported")
     elif node.op == "MINUS":
         try:
             return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)-evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
         except TypeError:
-            print("This operation is not supported but do you know that meows are not innate cat language? They developed them to communicate with humans!")
+            print("This operation is not supported")
     elif node.op == "MUL":
         try:
             return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)*evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
         except TypeError:
-            print("This operation is not supported but do you know that the hearing of the average cat is at least five times keener than that of a human adult?")
+            print("This operation is not supported")
     elif node.op == "NOT":
         return not evaluate_print(node.ap, state, print_var, print_state, print_step, init_step)
         #print_state.append(copy.deepcopy(state))
@@ -636,7 +634,8 @@ def main():
             step_list = step_list[0:10000]
         
         if len(state_list) ==1 and state_list[0] == {} and text[0:4] == "skip": 
-            print('')
+            print('{}')
+            pass
         else:
             for i in range(len(state_list)):
                 output_string = []
@@ -644,11 +643,13 @@ def main():
                     separator = " "
                     output_string.append(separator.join([key, "→", str(state_list[i][key])]))
 
-                state_string = ''.join(["{", ", ".join(output_string), "}"])
-                step_string = ' '.join(['⇒', step_list[i]])
+            # states managed by python dictionary
+            state_string = ''.join(["{", ", ".join(output_string), "}"])
+            step_string = ' '.join(['⇒', step_list[i]])
                 #print(step_string, state_string, sep = ', ')
-                print(state_string)
+            print(state_string)
             
 
 if __name__ == '__main__':
     main()
+
