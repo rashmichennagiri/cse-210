@@ -51,13 +51,13 @@ lint:
 	flake8 leviathan_serving tests
 
 test:
-	python arith.py test
+	python while.py test
 
 test-all:
 	tox
 
 coverage:
-	coverage run --source leviathan_serving arith.py test
+	coverage run --source leviathan_serving while.py test
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
@@ -74,13 +74,13 @@ servedocs: docs
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
 release: clean
-	python arith.py sdist upload
-	python arith.py bdist_wheel upload
+	python while.py sdist upload
+	python while.py bdist_wheel upload
 
 dist: clean
-	python arith.py sdist
-	python arith.py bdist_wheel
+	python while.py sdist
+	python while.py bdist_wheel
 	ls -l dist
 
 install: clean
-	python arith.py install
+	python while.py install

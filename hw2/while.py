@@ -9,9 +9,9 @@ sys.tracebacklimit = 0
 #                                                                             #
 ###############################################################################
 
-# 3 Token types: Aexpr Bexpr Commands/Satements
+# 3 types of expressions: Aexpr Bexpr Commands/Satements
 # EOF token = no more input left for lexical analysis
-# All token types for INT, VAR, BOOL, ARR, PLUS, MINUS, MUL, LESSTHAN, EQUAL, NOT, AND, OR, SKIP, ASSIGN, WHILE, { , }, IF, THEN, ELSE ;
+# All token types: INTEGER, VARIABLE, BOOLEAN, ARRAY, PLUS, MINUS, MULIPLY, LESSTHAN, EQUAL, NOT, AND, OR, SKIP, ASSIGN, WHILE, { , }, IF, THEN, ELSE ;
 class Token():
 
     def __init__(self, type, value):
@@ -70,8 +70,8 @@ class Lexer():
             self.error()   
 
     def get_next_token(self):
-    # gets next token    
         while self.current_char is not None:
+            # SINGLE CHARACTER TOKENS
             if self.current_char.isspace():
                 self.update_current_character()
             if self.current_char.isdigit():
@@ -119,8 +119,9 @@ class Lexer():
                 return Token("RIGHTPAR", ")")
             if self.current_char == ":":
                 return Token("ASSIGN", self.assign())
-            #Alphebetical inputs
+
             if self.current_char.isalpha():
+                # RESERVED KEYWORD TOKENS
                 result = ''
                 while self.current_char is not None and (self.current_char.isalpha() or self.current_char.isdigit()):
                     result = result+self.current_char
@@ -382,9 +383,13 @@ class Parser():
     def cparse(self):
         return self.cexpr()
 
+
+
 #General helper function for evaluating AST.
 def create_dict(var, value):
     return dict([tuple([var,value])])
+
+
 
 #Helper fuctions to do match:
 def switch(op):
@@ -400,7 +405,9 @@ def switch(op):
     "COMP":';',
     "NOT":'¬',
     }
-    return cases.get(op, "You sure?")
+    return cases.get(op, "please check operations")
+
+
 
 #Helper function that prints recursively
 def print_command(node):
@@ -423,6 +430,7 @@ def print_command(node):
     else:
         raise Exception("Pretty sure you made a mistake")
 
+
 #helper class to do string manipulation
 class Sstr():
     def __init__(self, string):
@@ -431,11 +439,11 @@ class Sstr():
         return (self.string + other.string)
     def __sub__(self, other):
         return (self.string.replace(other.string, "", 1))
-       #return (re.sub(other.string,'',self.string, count=1))
-#root = parsewhile.test("if (true) then x:=1 else zir9 := 2")
-#parsewhile.evaluate_print(root.ast, root.state, root.print_var, root.print_state, root.print_step)
+
+
 
 def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
+    
     state = state
     node = ast
 
@@ -447,12 +455,14 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
 
     if node.op in ("INT", "ARR", "BOOL"):
         return node.value
+    
     elif node.op == "VAR":
         if node.value in state:
             return state[node.value]
         else:
             state = state.update(create_dict(node.value, 0))
             return 0
+    
     elif node.op == "SKIP":
         state = state
         temp_var = set(print_var)
@@ -462,6 +472,7 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
         temp_step = Sstr(str(print_command(node)))
         print_step.append([Sstr(Sstr(init_step) - temp_step) - Sstr("; ")])
         init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
+    
     elif node.op == "COMP":
         evaluate_print(node.left, state, print_var, print_state, print_step, init_step)
         temp_var = set(print_var)
@@ -472,6 +483,7 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
         print_step.append([str(Sstr(Sstr(init_step) - temp_step) - Sstr("; "))])
         init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
         evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+    
     elif node.op =="ASSIGN":
         var = node.left.value
         print_var.append(var)
@@ -492,35 +504,38 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
             return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)+evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
         except TypeError:
             print("This operation is not supported")
+    
     elif node.op == "MINUS":
         try:
             return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)-evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
         except TypeError:
             print("This operation is not supported")
+    
     elif node.op == "MUL":
         try:
             return evaluate_print(node.left, state, print_var, print_state, print_step, init_step)*evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
         except TypeError:
             print("This operation is not supported")
+    
     elif node.op == "NOT":
         return not evaluate_print(node.ap, state, print_var, print_state, print_step, init_step)
-        #print_state.append(copy.deepcopy(state))
+    
     elif node.op =="EQUAL":
         #print("equal", state)
         return evaluate_print(node.left, state, print_var, print_state, print_step, init_step) == evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
-        #print_state.append(copy.deepcopy(state))
+    
     elif node.op =="LESSTHAN":
         #print("LESSTHAN", state)
-        #print_state.append(copy.deepcopy(state))
         return evaluate_print(node.left, state, print_var, print_state, print_step, init_step) < evaluate_print(node.right, state, print_var, print_state, print_step, init_step)
+    
     elif node.op =="AND":
         #print("and", state)
-        #print_state.append(copy.deepcopy(state))
         return (evaluate_print(node.left, state, print_var, print_state, print_step, init_step) and evaluate_print(node.right, state, print_var, print_state, print_step, init_step))
+    
     elif node.op =="OR":
         #print("or",state)
-        #print_state.append(copy.deepcopy(state))
         return (evaluate_print(node.left, state, print_var, print_state, print_step, init_step) or evaluate_print(node.right, state, print_var, print_state, print_step, init_step))
+    
     elif node.op == "WHILE":
         cond = node.cond
         wtrue = node.wtrue
@@ -551,12 +566,13 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
         temp_step = Sstr(print_command(node))
         print_step.append(["skip; "+ (Sstr(Sstr(init_step) - temp_step) - Sstr("; "))])
         init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
+    
     elif node.op =="IF":
         cond = node.cond
         iftrue = node.iftrue
         iffalse = node.iffalse
         if evaluate_print(cond, state, print_var, print_state, print_step, init_step):
-            #only record the state before execution
+            #only records state before execution
             temp_var = set(print_var)
             temp_state = copy.deepcopy(state)
             temp_state = dict((var, temp_state[var]) for var in temp_var)
@@ -574,8 +590,11 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
             print_step.append([str(print_command(node.iffalse)) + (Sstr(init_step) - temp_step)])
             init_step = str(print_command(node.iffalse)) + (Sstr(init_step) - temp_step)
             evaluate_print(iffalse, state, print_var, print_state, print_step, init_step)
+    
     else:
         raise Exception("error in evaluation")
+
+
 
 class Interpreter():
     def __init__(self, parser):
@@ -590,12 +609,14 @@ class Interpreter():
     def visit(self):
         return evaluate_print(self.ast, self.state, self.print_var, self.print_state, self.print_step, self.init_step)
 
+
 #returns an interpreter object for debugging
 def test(text):
     a = Lexer(text)
     b = Parser(a)
     c = Interpreter(b)
     return c
+
 
 ###############################################################################
 #                                                                             #
@@ -608,14 +629,11 @@ def main():
     while True:
         try:
             text = input('')
-            #line = line.strip()
-            #line = " ".join(line.split())
         except EOFError:
             break
         if not text:
             continue
 
-        #print(text)
         lexer = Lexer(text)
         parser = Parser(lexer)
         interpreter = Interpreter(parser)
@@ -643,13 +661,9 @@ def main():
                     separator = " "
                     output_string.append(separator.join([key, "→", str(state_list[i][key])]))
 
-            # states managed by python dictionary
             state_string = ''.join(["{", ", ".join(output_string), "}"])
-            step_string = ' '.join(['⇒', step_list[i]])
-                #print(step_string, state_string, sep = ', ')
             print(state_string)
             
 
 if __name__ == '__main__':
     main()
-

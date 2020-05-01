@@ -1,0 +1,65 @@
+commit fe8254da00c2377441a12ba72faab115f726b4b9
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 22:32:23 2020 -0700
+
+    bug fixes, added custom test file
+
+commit 3e53598dfb78ccd6be79bbd282a86fb669ddf689
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 22:15:41 2020 -0700
+
+    added readme file
+
+commit 2db9a652f1e8adfc30705e37adc99aa4c71bb153
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 21:42:34 2020 -0700
+
+    clean code, removed unneccesarry prints and comments
+
+commit 363ea6b048a5514e7979a02fd5ad7abe7bf7e671
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 21:04:00 2020 -0700
+
+    fixed bugs in interpreter
+
+commit 21ab484ff505f7bf8fa82f4d9e0cbdfe8592285f
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 17:09:36 2020 -0700
+
+    if and while statements handling
+
+commit 0708679bb3927822ee368499224fb1ef765ae97b
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 14:28:21 2020 -0700
+
+    implemented interpreter
+
+commit d7f73818bfb40934f61b8f7de916965ce1c73fae
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 21 15:26:55 2020 -0700
+
+    added visitor pattern for AST
+
+commit 786de63837bca54af0dfbd956893064ad675f041
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 21 04:09:58 2020 -0700
+
+    tool to generate parser class
+
+commit 1f8e0f9950e12d8246b54a29388bcdc01716b677
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 21 03:10:29 2020 -0700
+
+    started parser code
+
+commit 8a05925582f174730d60483760fab2e5126e3d53
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Tue Apr 20 22:53:25 2020 -0700
+
+    basic lexer for WHILE
+
+commit adc334a4cb10881154e26ebe7d54d479baf90fa6
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Tue Apr 20 16:26:41 2020 -0700
+
+    starting hw2, added test files
