@@ -1,4 +1,4 @@
-package hw2.lexer;
+package hw4.lexer;
 
 /**
  * enumerates all the possible tokens in the while language
@@ -15,16 +15,16 @@ public enum TokenType {
 	PLUS, MINUS, MULTIPLY, DIVIDE,
 	NEGATE,
 	AND, OR,
-	SEMICOLON, ASSIGNMENT,
-	EQUAL,
+	SEMICOLON,
+//	EQUAL,
 	LESS_THAN,
 	
 	
-	// DOUBLE CHARACTER TOKENS:
-	LESS_THAN_EQUAL,
+	// DOUBLE CHARACTER TOKENS:,
+	ASSIGNMENT,
 	
 	// LITERALS:
-	IDENTIFIER, STRING, NUMBER,
+	VARIABLE, NUMBER,
 	
 	
 	//KEYWORDS:
@@ -32,7 +32,6 @@ public enum TokenType {
 	TRUE, FALSE,
 	DO, WHILE, 
 	IF, ELSE, THEN,
-	VAR,
 	
 	EOF
 }

@@ -1,8 +1,12 @@
 package hw4;
 
-import hw2.lexer.Token;
-import hw2.lexer.TokenType;
+import hw4.lexer.Token;
 
+/**
+ * 
+ * @author rashmichennagiri
+ *
+ */
 public class WhileInterpreterException extends Exception{
 
 	private static final long serialVersionUID = 1L;
@@ -31,30 +35,11 @@ public class WhileInterpreterException extends Exception{
 	
 	/**
 	 * 
-	 * @param line
-	 * @param where
+	 * @param token
 	 * @param msg
 	 */
-	public WhileInterpreterException(int line, String msg) {
-		this( " [LINE " + line + " ]  ERROR: " + msg);
-    }
-	
 	public WhileInterpreterException(Token token, String msg) {
-			this( " [LINE " + token.line + " ]  ERROR AT " + token.lexeme + ": " + msg);
+			this( " ERROR AT " + token.lexeme + ": " + msg);
     }
-	
-	
-	/*
-
-	public static void error(int line, String msg ) {
-		reportError(line, "", msg);
-	}
-	
-	private static void reportError(int line, String where, String message) {
-		System.err.println(" [LINE " + line + " ]  ERROR AT: " + where + ": " + message);
-		WhileInterpreter.hadError = true;  
-	}
-	 */
-
-	
+		
 }

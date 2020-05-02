@@ -1,9 +1,7 @@
-package hw2.lexer;
+package hw4.lexer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import hw4.WhileInterpreterException;
 
@@ -19,39 +17,18 @@ public class Lexer {
 
 	private int startIndex = 0; 	// starting character index of token
 	private int currentIndex = 0; 	// current character index in lexeme
-	private int lineNumber = 1; 	// line number of token
 
-	private static final Map<String, TokenType> reservedKeywords;
-	
 	private final List<Token> tokens = new ArrayList<Token>();
-	
 
 	public Lexer(String input) {
 		this.userInput = input;
-	}
-	
-	static {
-		
-		reservedKeywords = new HashMap<>();
-		
-		reservedKeywords.put("skip", TokenType.SKIP);
-		reservedKeywords.put("true", TokenType.TRUE);
-		reservedKeywords.put("false", TokenType.FALSE);
-		reservedKeywords.put("do", TokenType.DO);
-		reservedKeywords.put("while", TokenType.WHILE);
-		reservedKeywords.put("if", TokenType.IF);
-		reservedKeywords.put("else", TokenType.ELSE);
-		reservedKeywords.put("then", TokenType.THEN);
-		reservedKeywords.put("var", TokenType.VAR);
-
-		
 	}
 
 	/**
 	 * scans user input for a list of tokens
 	 * 
 	 * @return
-	 * @throws WhileInterpreterException 
+	 * @throws WhileInterpreterException
 	 */
 	public List<Token> scanUserInputForTokens() throws WhileInterpreterException {
 
@@ -60,14 +37,15 @@ public class Lexer {
 			scanToken();
 		}
 
-		// public Token(TokenType tt, String lexeme, Object literal, int line) {
-		tokens.add(new Token(TokenType.EOF, "", null, lineNumber));
+		// public Token(TokenType tt, String lexeme, Object literal) {
+		tokens.add(new Token(TokenType.EOF, "", null));
 		return tokens;
 	}
 
 	/**
 	 * scans for a single token
-	 * @throws WhileInterpreterException 
+	 * 
+	 * @throws WhileInterpreterException
 	 */
 	private void scanToken() throws WhileInterpreterException {
 
@@ -75,19 +53,20 @@ public class Lexer {
 
 		switch (c) {
 
+		case ' ': // ignore whitespaces...
+		case '\r':
+		case '\t':
+			break;
+
+		// brackets
 		case '(':
 			addToken(TokenType.LEFT_PARENTHESIS);
 			break;
 		case ')':
 			addToken(TokenType.RIGHT_PARENTHESIS);
 			break;
-		case '{':
-			addToken(TokenType.LEFT_BRACE);
-			break;
-		case '}':
-			addToken(TokenType.RIGHT_BRACE);
-			break;
 
+		// arithmetic operators
 		case '+':
 			addToken(TokenType.PLUS);
 			break;
@@ -98,63 +77,46 @@ public class Lexer {
 			addToken(TokenType.MULTIPLY);
 			break;
 		case '/':
-			if (matchNextCharacter('/')) {
-				// eat up comments
-				while (getCurrentCharacter() != '\n' && !isAtEndOfUserInput())
-					updateCurrentCharacter();
-			} else
-				addToken(TokenType.DIVIDE);
+			addToken(TokenType.DIVIDE);
 			break;
 
+		// special characters
 		case ';':
 			addToken(TokenType.SEMICOLON);
 			break;
+
 		case ':':
 			if (matchNextCharacter('='))
 				addToken(TokenType.ASSIGNMENT);
-			else 
-				throw new WhileInterpreterException(lineNumber, "INVALID ASSIGNMENT OPERATOR");
+			else
+				throw new WhileInterpreterException("INVALID ASSIGNMENT OPERATOR");
 			break;
 
+		// boolean operators
 		case '∧':
 			addToken(TokenType.AND);
 			break;
 		case '∨':
 			addToken(TokenType.OR);
 			break;
-		case '¬':
+		case '¬': // ¬ option l
 			addToken(TokenType.NEGATE);
 			break;
-
-		case '=':
-			addToken(TokenType.EQUAL);
-			break;
-		case '<': // may be < or <=
-			addToken(matchNextCharacter('=') ? TokenType.LESS_THAN_EQUAL : TokenType.LESS_THAN);
+		case '<':
+			addToken(TokenType.LESS_THAN);
 			break;
 
-		case ' ': // ignore whitespaces...
-		case '\r':
-		case '\t':
-			break;
-
-		case '\n':
-			lineNumber++;
-			break;
-
-		case '"': getStringToken();
-		break;
-		
 		default:
-			if( isDigit(c) )
+			if (isDigit(c))
 				getNumberToken();
-			else if( isAlphabet(c))
+			else if (isAlphabet(c)) // either keyword or variable
 				getIdentifierToken();
+
 			else
-				throw new WhileInterpreterException(lineNumber, "INVALID CHARACTER!");
+				throw new WhileInterpreterException("INVALID CHARACTER!");
 			// ˆ option i
 			// ˇ shift option t
-			// ¬ option l
+
 		}
 	}
 
@@ -166,6 +128,15 @@ public class Lexer {
 	private char updateCurrentCharacter() {
 		currentIndex++;
 		return userInput.charAt(currentIndex - 1);
+	}
+
+	/**
+	 * checks for end of user input
+	 * 
+	 * @return
+	 */
+	private boolean isAtEndOfUserInput() {
+		return (currentIndex >= userInput.length());
 	}
 
 	/**
@@ -195,31 +166,7 @@ public class Lexer {
 
 		return userInput.charAt(currentIndex);
 	}
-	
-	
-	/**
-	 * parses for string token
-	 * @throws WhileInterpreterException 
-	 */
-	private void getStringToken() throws WhileInterpreterException {
-		
-		while( getCurrentCharacter() != '"' && !isAtEndOfUserInput() ) {
-			updateCurrentCharacter();
-		}
-		
-		if( isAtEndOfUserInput() )
-			throw new WhileInterpreterException(lineNumber, "STRING NOT TERMINATED PROPERLY");
-			
-		//parse closing " character
-		updateCurrentCharacter();
-		
-		//get actual string value:
-		String stringValue = userInput.substring(startIndex+1, currentIndex-1);
-		addToken(TokenType.STRING, stringValue);
-		
-	}
-	
-	
+
 	/**
 	 * checks if specified character is a digit
 	 * 
@@ -227,54 +174,82 @@ public class Lexer {
 	 * @return
 	 */
 	private boolean isDigit(char n) {
-		return (n>='0' && n<='9');
+		return (n >= '0' && n <= '9');
 	}
 
-	
 	/**
 	 * parses for a number token
 	 */
 	private void getNumberToken() {
-		// TODO fractions
-		while( isDigit(getCurrentCharacter()) )
+		while (isDigit(getCurrentCharacter()))
 			updateCurrentCharacter();
-		
+
 		addToken(TokenType.NUMBER, Integer.parseInt(userInput.substring(startIndex, currentIndex)));
 	}
-	
-	
+
 	/**
 	 * checks if specified character is an alphabet
+	 * 
 	 * @param a
 	 * @return
 	 */
 	private boolean isAlphabet(char a) {
-		return (a>='a' && a<='z') || (a>='A' && a<='Z') ;
+		return (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z');
 	}
-	
-	
+
 	/**
-	 * parses for an identifier token
+	 * parses for an identifier token (keyword/variable)
 	 */
 	private void getIdentifierToken() {
-		while( isAlphabet(getCurrentCharacter()))
+		while (isAlphabet(getCurrentCharacter()))
 			updateCurrentCharacter();
-		
-		String var = userInput.substring(startIndex, currentIndex);
-		
-		if( reservedKeywords.get(var) == null)
-			addToken(TokenType.IDENTIFIER, var);
-		else
-			;// TODO??
+
+		String val = userInput.substring(startIndex, currentIndex);
+
+		switch (val) {
+
+		case "skip":
+			addToken(TokenType.SKIP);
+			break;
+
+		case "true":
+			addToken(TokenType.TRUE);
+			break;
+
+		case "false":
+			addToken(TokenType.FALSE);
+			break;
+
+		case "while":
+			addToken(TokenType.WHILE);
+			break;
+
+		case "do":
+			addToken(TokenType.DO);
+			break;
+
+		case "if":
+			addToken(TokenType.IF);
+			break;
+
+		case "then":
+			addToken(TokenType.THEN);
+			break;
+
+		case "else":
+			addToken(TokenType.ELSE);
+			break;
+
+		default:
+			addToken(TokenType.VARIABLE, val);
+		}
 	}
-	
-	
+
 	/**
 	 * 
 	 * @param tt
 	 */
 	private void addToken(TokenType tt) {
-		// public Token(TokenType tt, String lexeme, Object literal, int line) {
 		addToken(tt, null);
 	}
 
@@ -285,16 +260,8 @@ public class Lexer {
 	 */
 	private void addToken(TokenType tt, Object literal) {
 		String tokenText = userInput.substring(startIndex, currentIndex);
-		tokens.add(new Token(tt, tokenText, literal, lineNumber));
-	}
-
-	/**
-	 * checks for end of user input
-	 * 
-	 * @return
-	 */
-	private boolean isAtEndOfUserInput() {
-		return (currentIndex >= userInput.length());
+		// public Token(TokenType tt, String lexeme, Object literal) {
+		tokens.add(new Token(tt, tokenText, literal));
 	}
 
 }

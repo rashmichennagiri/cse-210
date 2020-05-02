@@ -1,4 +1,4 @@
-package hw2.lexer;
+package hw4.lexer;
 
 /**
  * represents a token with all of its details
@@ -9,22 +9,20 @@ package hw2.lexer;
 public class Token {
 
 	public final TokenType tokenType;		// type of the token
-	public final String lexeme;				// actual lexeme
+	public final String lexeme;				// string value of token
 	public final Object literal;			// actual token value
-	public final int line;					// line number of the token
 	
 	
-	public Token(TokenType tt, String lexeme, Object literal, int line) {
+	public Token(TokenType tt, String lexeme, Object literal) {
 		this.tokenType = tt;
 		this.lexeme = lexeme;
 		this.literal = literal;
-		this.line = line;
 	}
 
 
 	@Override
 	public String toString() {
-		return "Token [tokenType=" + tokenType + ", lexeme=" + lexeme + ", literal=" + literal + ", line=" + line + "]";
+		return "Token [tokenType=" + tokenType + ", lexeme=" + lexeme + ", literal=" + literal + "]";
 	}
 	
 	
