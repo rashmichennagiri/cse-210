@@ -7,6 +7,9 @@ import java.util.List;
 
 import hw4.lexer.Lexer;
 import hw4.lexer.Token;
+import hw4.parser.Node;
+import hw4.parser.Parser;
+import hw4.util.ASTPrinter;
 
 /**
  * main class for WHILE interpreter
@@ -56,18 +59,19 @@ public class WhileInterpreter {
 		Lexer lexer = new Lexer(userInput);
 		List<Token> tokens = lexer.scanUserInputForTokens();
 
+		System.out.println("\n LIST OF TOKENS:");
 		for (Token t : tokens) {
 			System.out.println(t);
 		}
 
-		// Parser parser = new Parser(tokens);
-		// Expression expr
-		// List<Statement> s = parser.parse();
+		Parser parser = new Parser(tokens);
+		Node ast = parser.parse();
 
 		if (hadError)
 			return;
 
-		// System.out.println( new ASTPrinter().print(expr));
+		System.out.println("\n AST:");
+		System.out.println( new ASTPrinter().print(ast));
 
 		// Interpreter intepreter = new Interpreter();
 		// intepreter.interpret(s);

@@ -1,19 +1,10 @@
-package hw2.interpreter;
+package hw4.interpreter;
 
 import java.util.List;
 
-import hw2.lexer.Token;
-import hw2.parser.Expression;
-import hw2.parser.Expression.Assign;
-import hw2.parser.Expression.Binary;
-import hw2.parser.Expression.Grouping;
-import hw2.parser.Expression.Literal;
-import hw2.parser.Expression.Unary;
-import hw2.parser.Expression.Variable;
-import hw2.parser.Statement;
-import hw2.parser.Statement.Expr;
-import hw2.parser.Statement.Print;
-import hw2.parser.Statement.Var;
+import hw4.lexer.Token;
+import hw4.parser.Node.*;
+//import hw2.parser.Statement;
 import hw4.WhileInterpreter;
 import hw4.WhileInterpreterException;
 
@@ -22,7 +13,7 @@ import hw4.WhileInterpreterException;
  * @author rashmichennagiri
  *
  */
-public class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
+public class Interpreter implements Node.Visitor<Object>, Statement.Visitor<Void> {
 
 
 	private Environment env = new Environment();
@@ -148,7 +139,7 @@ public class Interpreter implements Expression.Visitor<Object>, Statement.Visito
 	 * @param ex
 	 * @return
 	 */
-	private Object evaluateExpression(Expression ex) {
+	private Object evaluateExpression(Node ex) {
 		return ex.accept(this);
 	}
 	

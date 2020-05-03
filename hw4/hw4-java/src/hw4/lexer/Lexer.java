@@ -65,6 +65,12 @@ public class Lexer {
 		case ')':
 			addToken(TokenType.RIGHT_PARENTHESIS);
 			break;
+		case '{':
+			addToken(TokenType.LEFT_BRACE);
+			break;
+		case '}':
+			addToken(TokenType.RIGHT_BRACE);
+			break;
 
 		// arithmetic operators
 		case '+':
@@ -100,10 +106,15 @@ public class Lexer {
 			addToken(TokenType.OR);
 			break;
 		case '¬': // ¬ option l
-			addToken(TokenType.NEGATE);
+			addToken(TokenType.NOT);
 			break;
+			
+		// comparison operators
 		case '<':
 			addToken(TokenType.LESS_THAN);
+			break;
+		case '=':
+			addToken(TokenType.EQUAL);
 			break;
 
 		default:
@@ -213,11 +224,11 @@ public class Lexer {
 			break;
 
 		case "true":
-			addToken(TokenType.TRUE);
+			addToken(TokenType.BOOLEAN, true);
 			break;
 
 		case "false":
-			addToken(TokenType.FALSE);
+			addToken(TokenType.BOOLEAN, false);
 			break;
 
 		case "while":
