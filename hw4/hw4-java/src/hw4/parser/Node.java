@@ -49,6 +49,7 @@ public abstract class Node {
 	 */
 	public static class SemiColonNode extends Node {
 
+		public Node parent = null;
 		public final Node left;
 		public final Token operator; // ;
 		public final Node right; // cterm
@@ -57,11 +58,115 @@ public abstract class Node {
 			this.left = left;
 			this.operator = operator;
 			this.right = right;
+			// this.parent = parent;
 		}
 
 		@Override
 		public <R> R accept(Visitor<R> visitor) {
 			return visitor.visitSemicolonNode(this);
+		}
+	}
+
+	/**
+	 * node for the 'skip' operation
+	 * 
+	 * @author rashmichennagiri
+	 */
+	public static class SkipOperationNode extends Node {
+
+		public final Token token;
+		public final Object value;
+		public Node parent = null;
+
+		public SkipOperationNode(Token token, Object value) {
+			this.token = token;
+			this.value = value;
+			// this.parent = parent;
+		}
+
+		@Override
+		public <R> R accept(Visitor<R> visitor) {
+			return visitor.visitSkipOperationNode(this);
+		}
+	}
+
+	/**
+	 * assignment operator node
+	 * 
+	 * @author rashmichennagiri
+	 *
+	 */
+	public static class AssignmentOperationNode extends Node {
+
+		public Node parent = null;
+		public final Node variableName;
+		public final Token operator; // :=
+		public final Node value;
+
+		AssignmentOperationNode(Node variableName, Token op, Node value) {
+			this.variableName = variableName;
+			this.operator = op;
+			this.value = value;
+			// this.parent = parent;
+		}
+
+		@Override
+		public <R> R accept(Visitor<R> visitor) {
+			return visitor.visitAssignmentNode(this);
+		}
+	}
+
+	/**
+	 * node for 'if' operation
+	 * 
+	 * @author rashmichennagiri
+	 */
+	public static class IfOperationNode extends Node {
+
+		public Node parent = null;
+		public final Token token;
+		public final Node condition; // boolean op
+		public final Node ifTrueCommands;
+		public final Node ifFalseCommands;
+
+		public IfOperationNode(Token token, Node condition, Node ifTrueCommands, Node ifFalseCommands) {
+			this.token = token;
+			this.condition = condition;
+			this.ifTrueCommands = ifTrueCommands;
+			this.ifFalseCommands = ifFalseCommands;
+			// this.parent = parent;
+		}
+
+		@Override
+		public <R> R accept(Visitor<R> visitor) {
+			return visitor.visitIfOperationNode(this);
+		}
+	}
+
+	/**
+	 * node for 'while' operation
+	 * 
+	 * @author rashmichennagiri
+	 */
+	public static class WhileOperationNode extends Node {
+
+		public final Token token;
+		public final Node condition; // boolean op
+		public final Node whileTrueCommands;
+		public final Node whileFalseCommands;
+		public Node parent = null;
+
+		public WhileOperationNode(Token token, Node condition, Node whileTrueCommands, Node whileFalseCommands) {
+			this.token = token;
+			this.condition = condition;
+			this.whileTrueCommands = whileTrueCommands;
+			this.whileFalseCommands = whileFalseCommands;
+			// this.parent = parent;
+		}
+
+		@Override
+		public <R> R accept(Visitor<R> visitor) {
+			return visitor.visitWhileOperationNode(this);
 		}
 	}
 
@@ -106,30 +211,6 @@ public abstract class Node {
 		@Override
 		public <R> R accept(Visitor<R> visitor) {
 			return visitor.visitUnaryOperationNode(this);
-		}
-	}
-
-	/**
-	 * assignment operator node
-	 * 
-	 * @author rashmichennagiri
-	 *
-	 */
-	public static class AssignmentOperationNode extends Node {
-
-		public final Node variableName;
-		public final Token operator; // :=
-		public final Node value;
-
-		AssignmentOperationNode(Node variableName, Token op, Node value) {
-			this.variableName = variableName;
-			this.operator = op;
-			this.value = value;
-		}
-
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitAssignmentNode(this);
 		}
 	}
 
@@ -201,77 +282,6 @@ public abstract class Node {
 	}
 
 	/**
-	 * node for 'if' operation
-	 * 
-	 * @author rashmichennagiri
-	 */
-	public static class IfOperationNode extends Node {
-
-		public final Token token;
-		public final Node condition; // boolean op
-		public final Node ifTrueCommands;
-		public final Node ifFalseCommands;
-
-		public IfOperationNode(Token token, Node condition, Node ifTrueCommands, Node ifFalseCommands) {
-			this.token = token;
-			this.condition = condition;
-			this.ifTrueCommands = ifTrueCommands;
-			this.ifFalseCommands = ifFalseCommands;
-		}
-
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitIfOperationNode(this);
-		}
-	}
-
-	/**
-	 * node for 'while' operation
-	 * 
-	 * @author rashmichennagiri
-	 */
-	public static class WhileOperationNode extends Node {
-
-		public final Token token;
-		public final Node condition; // boolean op
-		public final Node whileTrueCommands;
-		public final Node whileFalseCommands;
-
-		public WhileOperationNode(Token token, Node condition, Node whileTrueCommands, Node whileFalseCommands) {
-			this.token = token;
-			this.condition = condition;
-			this.whileTrueCommands = whileTrueCommands;
-			this.whileFalseCommands = whileFalseCommands;
-		}
-
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitWhileOperationNode(this);
-		}
-	}
-
-	/**
-	 * node for the 'skip' operation
-	 * 
-	 * @author rashmichennagiri
-	 */
-	public static class SkipOperationNode extends Node {
-
-		public final Token token;
-		public final Object value;
-
-		public SkipOperationNode(Token token, Object value) {
-			this.token = token;
-			this.value = value;
-		}
-
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitSkipOperationNode(this);
-		}
-	}
-
-	/**
 	 * integer value node
 	 * 
 	 * @author rashmichennagiri
@@ -338,21 +348,18 @@ public abstract class Node {
 	 * array node
 	 * 
 	 * 
-	 * 
-	 * 
-	 * 
-	 * public static class Grouping extends Node{
-	 * 
-	 * public final Node expression;
-	 * 
-	 * Grouping(Node expression){ this.expression = expression; }
-	 * 
-	 * @Override public <R> R accept(Visitor<R> visitor) { return
-	 * visitor.visitGroupingExpression(this); }
-	 * 
-	 * }
-	 * 
-	 * 
 	 */
+
+	/**
+	 * to delete command node from the given ast
+	 * 
+	 * @param command
+	 * @param ast
+	 * @return
+	 */
+	public Node deleteNode(Node command, Node ast) {
+
+		return ast;
+	}
 
 }

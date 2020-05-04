@@ -426,6 +426,7 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
         temp_step = Sstr(str(print_command(node)))
         print_step.append([Sstr(Sstr(init_step) - temp_step) - Sstr("; ")])
         init_step = Sstr(Sstr(init_step) - temp_step) - Sstr("; ")
+        
     elif node.op == "COMP":
         evaluate_print(node.left, state, print_var, print_state, print_step, init_step)
         temp_var = set(print_var)

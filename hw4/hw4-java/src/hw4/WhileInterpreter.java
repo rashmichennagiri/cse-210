@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import hw4.interpreter.Interpreter;
+import hw4.interpreter.SmallStepInterpreter;
 import hw4.lexer.Lexer;
 import hw4.lexer.Token;
 import hw4.parser.Node;
@@ -73,8 +75,9 @@ public class WhileInterpreter {
 		System.out.println("\n AST:");
 		System.out.println( new ASTPrinter().print(ast));
 
-		// Interpreter intepreter = new Interpreter();
-		// intepreter.interpret(s);
+		SmallStepInterpreter ssi = new SmallStepInterpreter();
+		ssi.interpretAST(ast);
+
 
 	}
 

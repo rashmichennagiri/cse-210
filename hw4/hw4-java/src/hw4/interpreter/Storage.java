@@ -2,8 +2,10 @@ package hw4.interpreter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /** 
  * storage area for variable states
@@ -12,22 +14,22 @@ import java.util.Map;
  *
  */
 public class Storage {
-	
+
 	private List<Map> archivedStates = new ArrayList<>();
-	
-	private final Map<String, Object> variableStateStore = new HashMap<>();	// current store
-	
-	
+
+	private final Map<String, Integer> variableStateStore = new HashMap<>();	// current store
+
+
 	/**
 	 * 
 	 * @param name
 	 * @param value
 	 */
-	public void defineVariable(String name, Object value) {
-			variableStateStore.put(name, value);
+	public void defineVariable(String name, Integer value) {
+		variableStateStore.put(name, value);
 	}
-	
-	
+
+
 	/**
 	 * 
 	 * @param name
@@ -39,7 +41,37 @@ public class Storage {
 		else 
 			return 0;
 	}
-	
+
+
+
+	/**
+	 * 
+	 * @return
+	 */
+	public String getCurrentState() {
+
+		StringBuilder sb = new StringBuilder();
+
+		char rightArrow = (char) '\u2192';
+		//System.out.print(rightArrow);
+
+		sb.append("{");
+		Iterator<Entry<String, Integer>> iter = variableStateStore.entrySet().iterator();
+		while (iter.hasNext()) {
+			Entry<String, Integer> entry = iter.next();
+			sb.append(entry.getKey());
+			sb.append(rightArrow);
+			sb.append(entry.getValue());
+			if (iter.hasNext()) {
+				sb.append(',').append(' ');
+			}
+		}
+		sb.append("}");
+
+		return sb.toString();
+	}
+
+
 	/**
 	 * 
 	 * @param oldState
@@ -47,16 +79,16 @@ public class Storage {
 	public void archiveState(Map oldState) {
 		archivedStates.add(oldState);
 	}
-	
+
 	public void printAllStates() {
-		
+
 		for(Map m : archivedStates) {
 			System.out.println();
 			for (Object k: m.keySet()){
-	            String key = k.toString();
-	            String value = m.get(key).toString();  
-	            System.out.print("	" + key + " " + value + ", ");  
-	}
+				String key = k.toString();
+				String value = m.get(key).toString();  
+				System.out.print("	" + key + " " + value + ", ");  
+			}
 		}
 	}
 }

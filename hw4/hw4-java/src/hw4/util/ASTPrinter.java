@@ -33,7 +33,11 @@ public class ASTPrinter implements Node.Visitor<String> {
 
 	@Override
 	public String visitSemicolonNode(SemiColonNode expression) {
-		return addParams(expression.left, expression.operator.lexeme, expression.right);
+		//return "< " + expression.left.accept(this) +"> "+expression.operator.lexeme +" < "+ expression.right.accept(this) + " > ";
+		return expression.left.accept(this) +" "+expression.operator.lexeme +" "+ expression.right.accept(this) + "";
+
+		//return addParams(expression.left, expression.operator.lexeme, expression.right);
+
 	}
 
 	@Override
@@ -48,7 +52,7 @@ public class ASTPrinter implements Node.Visitor<String> {
 
 	@Override
 	public String visitAssignmentNode(AssignmentOperationNode expression) {
-		return addParams( expression.variableName, expression.operator.lexeme, expression.value);
+		return expression.variableName.accept(this) + " " + expression.operator.lexeme + " " + expression.value.accept(this);
 	}
 
 	@Override
@@ -68,12 +72,14 @@ public class ASTPrinter implements Node.Visitor<String> {
 
 	@Override
 	public String visitIfOperationNode(IfOperationNode e) {
-		return addParams(e.token.lexeme, e.condition, e.ifTrueCommands, e.ifFalseCommands);
+		// if (5<x) then { x := (2-2) } else { y := 9 }, {x → 9}
+		return e.token.lexeme + " " + e.condition.accept(this) + " then { " +  e.ifTrueCommands.accept(this) + " } else { " + e.ifFalseCommands.accept(this) + " }" ;
 	}
 
 	@Override
 	public String visitWhileOperationNode(WhileOperationNode e) {
-		return addParams(e.token.lexeme, e.condition, e.whileTrueCommands, e.whileFalseCommands);
+		// while ¬(x<0) do { x := -1 }
+		return e.token.lexeme + e.condition.accept(this) + " do { " +  e.whileTrueCommands.accept(this) + " } ";
 	}
 
 	@Override
@@ -117,6 +123,7 @@ public class ASTPrinter implements Node.Visitor<String> {
 
 		return sb.toString();
 	}
+
 
 	private String addParams(Node expression1, String name, Node expression2) {
 

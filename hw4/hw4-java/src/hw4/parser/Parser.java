@@ -4,6 +4,9 @@ import java.util.List;
 
 import hw4.lexer.Token;
 import hw4.lexer.TokenType;
+import hw4.parser.Node.AssignmentOperationNode;
+import hw4.parser.Node.SemiColonNode;
+import hw4.util.ASTPrinter;
 import hw4.WhileInterpreterException;
 
 /**
@@ -76,7 +79,9 @@ public class Parser {
 		while (matchNextToken(TokenType.SEMICOLON)) {
 			Token operator = getPreviousToken(); // ;
 			Node right = commandTerm();
-			left = new Node.AssignmentOperationNode(left, operator, right);
+			SemiColonNode s = new Node.SemiColonNode(left, operator, right);
+			left = s;
+			//s.parent = left;
 		}
 
 		return left;
@@ -92,11 +97,13 @@ public class Parser {
 	private Node commandTerm() throws WhileInterpreterException {
 
 		Node left = booleanExpression();
-
+		
 		while (matchNextToken(TokenType.ASSIGNMENT)) {
 			Token operator = getPreviousToken(); // :=
 			Node right = booleanExpression();
-			left = new Node.AssignmentOperationNode(left, operator, right);
+			AssignmentOperationNode a = new Node.AssignmentOperationNode(left, operator, right);
+			left = a;
+			a.parent = left;
 		}
 
 		return left;
@@ -177,6 +184,7 @@ public class Parser {
 		}
 		return ex;
 	}
+	
 
 	/**
 	 * unary -> (+|-)unary ) | primary
