@@ -1,0 +1,227 @@
+commit 596b57cc3758737b2683f6bbad69fb18f93f65c7
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Sun May 3 20:47:58 2020 -0700
+
+    bug fixes
+
+commit db9ebf419fa9931c1a0a04e3dd8f3440266d806b
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Sun May 3 19:57:42 2020 -0700
+
+    implemented small step interpretation
+
+commit dd0a622ebab4ccce3e3b546cdd2dd1a528775a43
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Sun May 3 00:33:09 2020 -0700
+
+    added interpretation for aExp
+
+commit e71946ec05a11cfa7646eaca5e21939ea141caf0
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Sat May 2 18:57:42 2020 -0700
+
+    java implementation of while parser which generates and prints AST
+
+commit 8138eb023ae50020f35ebe52089433f1c97259ec
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Sat May 2 13:04:00 2020 -0700
+
+    added lexer for while in java
+
+commit 5cb64e52e9369be3fce9a32c86e8a8dde40295c7
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri May 1 14:45:47 2020 -0700
+
+    added sherry's test files
+
+commit 2235ef5ebc777aeafb90e222b4fda014069306cd
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri May 1 14:43:25 2020 -0700
+
+    started hw4
+
+commit fe8254da00c2377441a12ba72faab115f726b4b9
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 22:32:23 2020 -0700
+
+    bug fixes, added custom test file
+
+commit 3e53598dfb78ccd6be79bbd282a86fb669ddf689
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 22:15:41 2020 -0700
+
+    added readme file
+
+commit 2db9a652f1e8adfc30705e37adc99aa4c71bb153
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 21:42:34 2020 -0700
+
+    clean code, removed unneccesarry prints and comments
+
+commit 363ea6b048a5514e7979a02fd5ad7abe7bf7e671
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 21:04:00 2020 -0700
+
+    implemented interpreter
+
+commit 21ab484ff505f7bf8fa82f4d9e0cbdfe8592285f
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 20:09:36 2020 -0700
+
+    added basic parsing for statements
+
+commit 0708679bb3927822ee368499224fb1ef765ae97b
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 17:28:21 2020 -0700
+
+    generated AST for arith
+
+commit d7f73818bfb40934f61b8f7de916965ce1c73fae
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 15:26:55 2020 -0700
+
+    added visitor pattern for AST
+
+commit 786de63837bca54af0dfbd956893064ad675f041
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 04:09:58 2020 -0700
+
+    tool to generate parser class
+
+commit 1f8e0f9950e12d8246b54a29388bcdc01716b677
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 03:10:29 2020 -0700
+
+    started parser code
+
+commit 8a05925582f174730d60483760fab2e5126e3d53
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Tue Apr 21 22:53:25 2020 -0700
+
+    basic lexer for WHILE written in java
+
+commit adc334a4cb10881154e26ebe7d54d479baf90fa6
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Tue Apr 21 16:26:41 2020 -0700
+
+    starting hw2, added test files
+
+commit 687d054b9601bf2be2c7b6db8171d0ce7a7367de
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 23:02:30 2020 -0700
+
+    added gitlog file and submitted zip
+
+commit bfb558fe503398595ad7b4b0a0945400227042d3
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 22:48:16 2020 -0700
+
+    updated readme
+
+commit 6dc4f09118ec54e0cf4bb537abf52dfdeb4e47de
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 22:46:40 2020 -0700
+
+    updated readme
+
+commit cb293b952e2ba685d249aada663d37c0a99fe97e
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 22:44:23 2020 -0700
+
+    updated readme
+
+commit 7b9ab988277e526bc958f0b44af9019e9259fa7d
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 22:43:41 2020 -0700
+
+    updated readme
+
+commit f65e2e5f96a2b34b4c579182f8b81cfd1002d301
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 22:40:03 2020 -0700
+
+    updated readme
+
+commit dabfd32b69442a7c48f21e059a2b4b50dbb60d01
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 22:29:01 2020 -0700
+
+    cleaned hw code, added custom test cases, attached test evidence pdf,
+
+commit a0b45f0ac8cb3e32dcdd9cb53a850f33b2b45cbc
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 21:48:16 2020 -0700
+
+    added test files, arith executable
+
+commit f43b53580af738ee3904712f7865f37ae7531232
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 21:46:07 2020 -0700
+
+    moved testing files to main directory
+
+commit 6b5a30fc1a6fce6481d4f5bc3e519679ec25b466
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 18:32:20 2020 -0700
+
+    renamed main file to arith.py, added makefile
+
+commit 361845740bd780f72753c72e5260d07bc7e56148
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 16:11:01 2020 -0700
+
+    implemented handling of unary operators
+
+commit fc7caf67a8d5780687907b04111908c78cc72ccd
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 15:50:59 2020 -0700
+
+    added debug statements and banners
+
+commit 4865dfec76b88d97234bea2bde29d87cec2d5dfc
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Fri Apr 10 12:34:57 2020 -0700
+
+    implemented AST, added README file
+
+commit c0eb96070e6e113e9bc85131f220bc1219ed225a
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Thu Apr 9 18:45:01 2020 -0700
+
+    added precedence for + - * / ( ) using grammar rules
+
+commit 97399c590a0b9aebd06de5b4fa5388071fd4ffa8
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Thu Apr 9 17:10:55 2020 -0700
+
+    added multiplication without precedence
+
+commit a4651546f76cce8bfed8df0658b07cd8903945e8
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Thu Apr 9 16:55:33 2020 -0700
+
+    split code into Lexer and Interpreter classes
+
+commit a39c10eaa2fb9a0b3e64a2d411bc749c0911730a
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Thu Apr 9 16:28:39 2020 -0700
+
+    enabled calculation of addition and subtracttion with more than one terms
+
+commit 1986460371d323d10838f9b9a5506eb614236d33
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Thu Apr 9 15:41:54 2020 -0700
+
+    improved basic interpreter: can handle multiple integers and white spaces
+
+commit 09425f4c927558628d88aced55658e444b35ae1b
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 8 23:24:11 2020 -0700
+
+    initial commit: test scripts + sample interpreter
+
+commit 04cfea0ca6b2459bd93b6f32015c055e3c8ab0a4
+Author: RASHMI CHENNAGIRI <rchennag@ucsc.edu>
+Date:   Wed Apr 8 22:37:25 2020 -0700
+
+    Initial commit

@@ -5,7 +5,7 @@ load harness
 }
 
 @test "easy-2" {
-  check 'skip' ''
+  check 'skip' '{}'
 }
 
 @test "easy-3" {

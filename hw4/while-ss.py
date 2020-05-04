@@ -154,6 +154,33 @@ class Lexer():
 #     To build AST from the tokens                                            #
 #                                                                             #
 ###############################################################################
+# WHILE Grammar:
+
+#   cexpr : cterm (SEMICOLON cterm)*
+
+#   cterm: bexpr (ASSIGN bexpr)*
+
+#   bexpr: bterm ((AND|OR) bterm)*
+
+#   bterm : aexpr ((EQUAL|LESSTHAN) aexpr)*
+
+#   aexpr   : aterm ((PLUS | MINUS) aterm)*
+
+#   aterm   : unary ((MUL | DIV) unary)*
+
+#   unary : (PLUS|MINUS) unary | primary
+
+#   primary : INTEGER
+#           | BOOLEAN
+#           | VARIABLE-NAME
+#           | NOT (bexpr) | NOT BOOLEAN
+#           | ARRAY
+#           | "(" bexpr ")" 
+#           | "{" cexpr "}" 
+#           | if condition=bexpr then iftrue=cexpr else iffalse = cexpr
+#           | while condition=bexpr do {whiletrue = cexpr}
+#           | while condition=bexpr do whiletrue=cterm
+#           | skip
 
 class IntNode():
     def __init__(self, token):
@@ -241,6 +268,19 @@ class Parser():
         raise error("Invalid Syntax for this language")   
 
     def factor(self):
+        #   primary : INTEGER
+        #           | BOOLEAN
+        #           | VARIABLE-NAME
+        #           | NOT (bexpr) | NOT BOOLEAN
+        #           | ARRAY
+        #           | "(" bexpr ")" 
+        #           | "{" cexpr "}" 
+        #           | if condition=bexpr then iftrue=cexpr else iffalse = cexpr
+        #           | while condition=bexpr do {whiletrue = cexpr}
+        #           | while condition=bexpr do whiletrue=cterm
+        #           | skip
+        #           | (+|-) primary)
+
         # returns the next integer term / unary operator subtree
         token = self.current_token
         
@@ -321,6 +361,7 @@ class Parser():
         return node
     
     def aterm(self):
+        #   aterm   : primary ((MUL | DIV) primary)*
         node = self.factor()
         while self.current_token.type == 'MUL':
             ttype = self.current_token.type
@@ -329,6 +370,7 @@ class Parser():
         return node
         
     def aexpr(self):
+        #   aexpr   : aterm ((PLUS | MINUS) aterm)*
         node = self.aterm()  
         while self.current_token.type in ("PLUS", "MINUS"):
             ttype = self.current_token.type
@@ -336,11 +378,8 @@ class Parser():
             node = BinopNode(left = node, right = self.aterm(), op = ttype)
         return node
 
-    #this returns a node that represent Aexpr for debugging
-    def aparse(self):
-        return self.aexpr()
-
     def bterm(self):
+        #   bterm : aexpr ((EQUAL|LESSTHAN) aexpr)*
         node = self.aexpr()
         if self.current_token.type in ("EQUAL","LESSTHAN"):
             #print(self.current_token)
@@ -350,6 +389,7 @@ class Parser():
         return node
     
     def bexpr(self):
+        #   bexpr: bterm ((AND|OR) bterm)*
         node = self.bterm()
         while self.current_token.type in ("AND", "OR"):
             ttype = self.current_token.type
@@ -357,23 +397,19 @@ class Parser():
             node = BinopNode(left = node, right = self.bterm(), op = ttype)
         return node
 
-    #this returns a node that represents combination of aexpr and bexpr
-    def bparse(self):
-        return self.bexpr()
-
     def cterm(self):
+        #   cterm: bexpr (ASSIGN bexpr)*
         node = self.bexpr()
         if self.current_token.type == "ASSIGN":
-            #print(self.current_token)
             ttype = self.current_token.type
             self.current_token = self.lexer.get_next_token()
             node = AssignNode(left = node, right = self.bexpr(), op = ttype)
         return node
 
     def cexpr(self):
+        #   cexpr : cterm (SEMICOLON cterm)*
         node = self.cterm()
         while self.current_token.type == "COMP":
-            #print(self.current_token)
             ttype = self.current_token.type
             self.current_token = self.lexer.get_next_token()
             node = CompNode(left = node, right = self.cterm(), op = ttype)
