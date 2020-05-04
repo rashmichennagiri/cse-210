@@ -417,6 +417,7 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
         else:
             state = state.update(create_dict(node.value, 0))
             return 0
+            
     elif node.op == "SKIP":
         state = state
         temp_var = set(print_var)
