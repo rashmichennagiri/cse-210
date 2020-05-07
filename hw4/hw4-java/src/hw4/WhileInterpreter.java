@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
-import hw4.interpreter.Interpreter;
 import hw4.interpreter.SmallStepInterpreter;
 import hw4.lexer.Lexer;
 import hw4.lexer.Token;
@@ -32,23 +31,24 @@ public class WhileInterpreter {
 	 * @throws WhileInterpreterException
 	 */
 	private static void runPrompt() throws IOException {
+
 		InputStreamReader input = new InputStreamReader(System.in);
 		BufferedReader reader = new BufferedReader(input);
-		String userInput = "@";
+		String userInput;
 
-		for (;;) {
-			hadError = false;
-			System.out.print("\n>> ");
-			try {
-				userInput = reader.readLine();
-				if (userInput.equals("@"))
-					break;
-				else
-					run(userInput);
-			} catch (WhileInterpreterException e) {
-				e.printStackTrace();
-			}
+		// for (;;) {
+		hadError = false;
+		// System.out.print("\n>> ");
+		try {
+			userInput = reader.readLine();
+			// if (userInput.equals("@"))
+			// break;
+			// else
+			run(userInput);
+		} catch (WhileInterpreterException e) {
+			e.printStackTrace();
 		}
+		// }
 		// @ to exit
 	}
 
@@ -58,13 +58,14 @@ public class WhileInterpreter {
 	 * @throws WhileInterpreterException
 	 */
 	private static void run(String userInput) throws WhileInterpreterException {
+
 		Lexer lexer = new Lexer(userInput);
 		List<Token> tokens = lexer.scanUserInputForTokens();
 
-		System.out.println("\n LIST OF TOKENS:");
-		for (Token t : tokens) {
-			System.out.println(t);
-		}
+//		System.out.println("\n LIST OF TOKENS:");
+//		for (Token t : tokens) {
+//			System.out.println(t);
+//		}
 
 		Parser parser = new Parser(tokens);
 		Node ast = parser.parse();
@@ -72,12 +73,13 @@ public class WhileInterpreter {
 		if (hadError)
 			return;
 
-		System.out.println("\n AST:");
-		System.out.println( new ASTPrinter().print(ast));
+//		System.out.println("\n AST:");
+//		System.out.println(new ASTPrinter().print(ast));
+
+		// Storage.resetVariableStore();
 
 		SmallStepInterpreter ssi = new SmallStepInterpreter();
 		ssi.interpretAST(ast);
-
 
 	}
 

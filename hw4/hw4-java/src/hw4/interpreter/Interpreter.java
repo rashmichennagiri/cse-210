@@ -26,15 +26,16 @@ import hw4.parser.Node.WhileOperationNode;
  */
 public class Interpreter implements Node.Visitor<Object> {
 
-	private Storage statesStore = new Storage();
-
 	/**
 	 * 
 	 * @param n
 	 */
-	public void interpret(Node n) {
+	public String interpret(Node n) {
 		Object value = evaluateExpression(n);
-		System.out.println(stringify(value));
+		if (value != null)
+			return (stringify(value));
+		else
+			return null; // ("{}");
 	}
 
 	/**
@@ -55,11 +56,6 @@ public class Interpreter implements Node.Visitor<Object> {
 		return expr.accept(this);
 	}
 
-
-
-
-
-
 	// ###############################################################################
 	// EVALUATE A-EXP:
 	// ###############################################################################
@@ -71,7 +67,7 @@ public class Interpreter implements Node.Visitor<Object> {
 
 	@Override
 	public Object visitVariableNameNode(VariableNameNode expression) {
-		//return statesStore.getVariableValue(expression.variableName);
+		// return statesStore.getVariableValue(expression.variableName);
 		return expression.variableName;
 	}
 
@@ -82,6 +78,14 @@ public class Interpreter implements Node.Visitor<Object> {
 
 			Object left = evaluateExpression(expr.left);
 			Object right = evaluateExpression(expr.right);
+
+			if (!(left instanceof Integer))
+				left = Storage.getVariableValue(left.toString());
+			if (!(right instanceof Integer))
+				right = Storage.getVariableValue(right.toString());
+
+			// System.out.println("~~~~~~ " + (int) left + " " + (int) right);
+			// return ((int) left < (int) right);
 
 			switch (expr.operator.tokenType) {
 
@@ -156,7 +160,6 @@ public class Interpreter implements Node.Visitor<Object> {
 		return;
 	}
 
-
 	// ###############################################################################
 	// EVALUATE B-EXP:
 	// ###############################################################################
@@ -174,18 +177,19 @@ public class Interpreter implements Node.Visitor<Object> {
 			Object left = evaluateExpression(expr.left);
 			Object right = evaluateExpression(expr.right);
 
+			if (!(left instanceof Integer))
+				left = Storage.getVariableValue(left.toString());
+			if (!(right instanceof Integer))
+				right = Storage.getVariableValue(right.toString());
+
 			switch (expr.operator.tokenType) {
 
 			case EQUAL:
-				checkForNumberOperands(expr.operator, left, right);
-				return (left == right);
+				// checkForNumberOperands(expr.operator, left, right);
+				return ((int) left == (int) right);
 
 			case LESS_THAN:
-				if( !(left instanceof Integer))
-					left = statesStore.getVariableValue(left.toString());
-				if( !(right instanceof Integer))
-					right = statesStore.getVariableValue(right.toString());
-
+				// System.out.println("~~~~~~ " + (int) left + " " + (int) right);
 				return ((int) left < (int) right);
 
 			default:
@@ -202,11 +206,9 @@ public class Interpreter implements Node.Visitor<Object> {
 		return null;
 	}
 
-
 	private boolean isDigit(char n) {
 		return (n >= '0' && n <= '9');
 	}
-
 
 	@Override
 	public Object visitBooleanOperationNode(BooleanOperationNode expr) {
@@ -219,12 +221,16 @@ public class Interpreter implements Node.Visitor<Object> {
 			switch (expr.operator.tokenType) {
 
 			case AND:
-				checkForBooleanOperands(expr.operator, left, right);
-				return (Boolean.parseBoolean((String) left) && Boolean.parseBoolean((String) right));
+				// checkForBooleanOperands(expr.operator, left, right);
+				// return (Boolean.parseBoolean((String) left) && Boolean.parseBoolean((String)
+				// right));
+				return (boolean) left && (boolean) right;
 
 			case OR:
-				checkForBooleanOperands(expr.operator, left, right);
-				return (Boolean.parseBoolean((String) left) || Boolean.parseBoolean((String) right));
+				// checkForBooleanOperands(expr.operator, left, right);
+				// return (Boolean.parseBoolean((String) left) || Boolean.parseBoolean((String)
+				// right));
+				return (boolean) left || (boolean) right;
 
 			default:
 				throw new WhileInterpreterException("invalid comparison operator!");
@@ -245,7 +251,7 @@ public class Interpreter implements Node.Visitor<Object> {
 		try {
 			Object right = evaluateExpression(expr.expr);
 			checkForBooleanOperands(expr.token, right);
-			return (!Boolean.parseBoolean((String) right));
+			return !((boolean) right);
 
 		} catch (WhileInterpreterException e) {
 			WhileInterpreter.hadRuntimeError = true;
@@ -271,10 +277,11 @@ public class Interpreter implements Node.Visitor<Object> {
 	// ###############################################################################
 	// EVALUATE C-EXP:
 	// for each command node
-	//		1. execute command
-	// 		2. remove step -> if skip: ( delete node from AST) else replace current node with skip
-	//		3. print remaining AST
-	//		4. print current states
+	// 1. execute command
+	// 2. remove step -> if skip: ( delete node from AST) else replace current node
+	// with skip
+	// 3. print remaining AST
+	// 4. print current states
 	//
 	// ###############################################################################
 
@@ -288,44 +295,49 @@ public class Interpreter implements Node.Visitor<Object> {
 	@Override
 	public Object visitAssignmentNode(AssignmentOperationNode expression) {
 
-		//		1. execute command: add or update variable
+		// 1. execute command: add or update variable
 		String varName = "" + expression.variableName.accept(this);
-		int value = Integer.parseInt("" + expression.value.accept(this));
-		statesStore.defineVariable(varName, value );
 
+		Object value = expression.value.accept(this);
 
-		// 		2. remove step -> replace current node with skip
+		if (!(value instanceof Integer))
+			value = Storage.getVariableValue(value.toString());
 
-		//		3. print remaining AST
-		//		4. print current states
+		// int value = Integer.parseInt("" + expression.value.accept(this));
+		Storage.defineVariable(varName, (int) value);
 
-		return statesStore.getCurrentState();
+		// 2. remove step -> replace current node with skip
+		// 3. print remaining AST
+		// 4. print current states
+
+		return Storage.getCurrentState();
 	}
-
 
 	@Override
 	public Object visitSemicolonNode(SemiColonNode expression) {
 		// breaks into steps
-		return null;
+		expression.left.accept(this);
+		return expression.right.accept(this);
 	}
 
 	@Override
 	public Object visitIfOperationNode(IfOperationNode expression) {
-		// TODO Auto-generated method stub
-		return null;
+		if ((boolean) expression.condition.accept(this)) {
+			return expression.ifTrueCommands.accept(this);
+		} else {
+			return expression.ifFalseCommands.accept(this);
+		}
 	}
 
 	@Override
 	public Object visitWhileOperationNode(WhileOperationNode expression) {
 
-		if( (boolean) expression.condition.accept(this)) {
-			return expression.whileTrueCommands.accept(this);
+		Object result = null;
+		while ((boolean) expression.condition.accept(this)) {
+			result = expression.whileTrueCommands.accept(this);
 		}
-		else {
-			return 0;
-			//return expression.whileFalseCommands.accept(this);
-		}
-		//return null;
+		return result;
+		// return expression.whileFalseCommands.accept(this);
 	}
 
 }

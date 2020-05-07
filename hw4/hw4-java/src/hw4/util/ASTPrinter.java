@@ -79,7 +79,7 @@ public class ASTPrinter implements Node.Visitor<String> {
 	@Override
 	public String visitWhileOperationNode(WhileOperationNode e) {
 		// while ¬(x<0) do { x := -1 }
-		return e.token.lexeme + e.condition.accept(this) + " do { " +  e.whileTrueCommands.accept(this) + " } ";
+		return e.token.lexeme + " "+ e.condition.accept(this) + " do { " +  e.whileTrueCommands.accept(this) + " } ";
 	}
 
 	@Override

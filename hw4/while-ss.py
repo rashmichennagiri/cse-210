@@ -608,7 +608,6 @@ def evaluate_print(ast, state, print_var, print_state, print_step, init_step):
         iftrue = node.iftrue
         iffalse = node.iffalse
         if evaluate_print(cond, state, print_var, print_state, print_step, init_step):
-            #only records state before execution
             temp_var = set(print_var)
             temp_state = copy.deepcopy(state)
             temp_state = dict((var, temp_state[var]) for var in temp_var)

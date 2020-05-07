@@ -17,15 +17,22 @@ public class Storage {
 
 	private List<Map> archivedStates = new ArrayList<>();
 
-	private final Map<String, Integer> variableStateStore = new HashMap<>();	// current store
+	private static Map<String, Integer> variableStateStore = new HashMap<>();	// current store
 
 
+	
+	/**
+	 * 
+	 */
+	public static void resetVariableStore() {
+		variableStateStore.clear();
+	}
 	/**
 	 * 
 	 * @param name
 	 * @param value
 	 */
-	public void defineVariable(String name, Integer value) {
+	public static void defineVariable(String name, Integer value) {
 		variableStateStore.put(name, value);
 	}
 
@@ -35,7 +42,7 @@ public class Storage {
 	 * @param name
 	 * @return
 	 */
-	public Object getVariableValue(String name) {
+	public static Object getVariableValue(String name) {
 		if(variableStateStore.containsKey(name))
 			return variableStateStore.get(name);
 		else 
@@ -48,7 +55,7 @@ public class Storage {
 	 * 
 	 * @return
 	 */
-	public String getCurrentState() {
+	public static String getCurrentState() {
 
 		StringBuilder sb = new StringBuilder();
 
@@ -60,7 +67,7 @@ public class Storage {
 		while (iter.hasNext()) {
 			Entry<String, Integer> entry = iter.next();
 			sb.append(entry.getKey());
-			sb.append(rightArrow);
+			sb.append(" " + rightArrow + " ");
 			sb.append(entry.getValue());
 			if (iter.hasNext()) {
 				sb.append(',').append(' ');

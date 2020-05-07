@@ -8,11 +8,12 @@ import hw4.parser.Node.AssignmentOperationNode;
 import hw4.parser.Node.SemiColonNode;
 import hw4.util.ASTPrinter;
 import hw4.WhileInterpreterException;
+import hw4.interpreter.SmallStepInterpreter;
 
 /**
  * 
- * 1. Given a valid sequence of tokens, produce corresponding abstract syntax tree.
- * 2. Given an invalid sequence of tokens, detect and report errors.
+ * 1. Given a valid sequence of tokens, produce corresponding abstract syntax
+ * tree. 2. Given an invalid sequence of tokens, detect and report errors.
  * 
  * each rule of the grammar becomes a method
  * 
@@ -56,16 +57,15 @@ public class Parser {
 	 * @throws WhileInterpreterException
 	 */
 	public Node parse() throws WhileInterpreterException {
-		//while (!isLastToken()) {
+		// while (!isLastToken()) {
 
 		Node ast = commandExpression();
-		if(isLastToken())
+		if (isLastToken())
 			return ast;
 		else
 			throw new WhileInterpreterException("something wrong! :(");
 	}
 
-	
 	/**
 	 * cexpr : cterm (SEMICOLON cterm)*
 	 * 
@@ -81,13 +81,12 @@ public class Parser {
 			Node right = commandTerm();
 			SemiColonNode s = new Node.SemiColonNode(left, operator, right);
 			left = s;
-			//s.parent = left;
+			// s.parent = left;
 		}
 
 		return left;
 	}
-	
-	
+
 	/**
 	 * cterm: bexpr (ASSIGN bexpr)*
 	 * 
@@ -97,7 +96,7 @@ public class Parser {
 	private Node commandTerm() throws WhileInterpreterException {
 
 		Node left = booleanExpression();
-		
+
 		while (matchNextToken(TokenType.ASSIGNMENT)) {
 			Token operator = getPreviousToken(); // :=
 			Node right = booleanExpression();
@@ -108,8 +107,6 @@ public class Parser {
 
 		return left;
 	}
-
-	
 
 	/**
 	 * bexpr: bterm ((AND|OR) bterm)*
@@ -129,8 +126,7 @@ public class Parser {
 
 		return left;
 	}
-	
-	
+
 	/**
 	 * bterm : aexpr ((EQUAL|LESSTHAN) aexpr)*
 	 * 
@@ -151,7 +147,7 @@ public class Parser {
 	}
 
 	/**
-	 * aexpr   : aterm ((PLUS | MINUS) aterm)*
+	 * aexpr : aterm ((PLUS | MINUS) aterm)*
 	 * 
 	 * @return
 	 * @throws WhileInterpreterException
@@ -184,7 +180,6 @@ public class Parser {
 		}
 		return ex;
 	}
-	
 
 	/**
 	 * unary -> (+|-)unary ) | primary
@@ -203,96 +198,86 @@ public class Parser {
 	}
 
 	/**
-	 * primary -> BOOLEAN(true/false) | NUMBER | variableName
-	 * 				| "(" bexpr ")" 
-	 * 				| "{" cexpr "}" 
-	 * 				| NOT (bexpr) | NOT BOOLEAN
-	 * 				| if condition=bexpr then iftrue=cexpr else iffalse = cexpr 
-	 * 				| while condition=bexpr do {whiletrue = cexpr}
-	 * 				| while condition=bexpr do whiletrue=cterm
-	 * 				| skip
-        TODO: | ARRAY
+	 * primary -> BOOLEAN(true/false) | NUMBER | variableName | "(" bexpr ")" | "{"
+	 * cexpr "}" | NOT (bexpr) | NOT BOOLEAN | if condition=bexpr then iftrue=cexpr
+	 * else iffalse = cexpr | while condition=bexpr do {whiletrue = cexpr} | while
+	 * condition=bexpr do whiletrue=cterm | skip TODO: | ARRAY
+	 * 
 	 * @return
-	 * @throws WhileInterpreterException 
+	 * @throws WhileInterpreterException
 	 */
 	private Node primary() throws WhileInterpreterException {
 
-		if( matchNextToken(TokenType.BOOLEAN))
+		if (matchNextToken(TokenType.BOOLEAN))
 			return new Node.BooleanValueNode(getPreviousToken(), Boolean.parseBoolean(getPreviousToken().lexeme));
 
-		if( matchNextToken(TokenType.NUMBER))
+		if (matchNextToken(TokenType.NUMBER))
 			return new Node.IntegerValueNode(getPreviousToken(), Integer.parseInt(getPreviousToken().lexeme));
 
-		if( matchNextToken(TokenType.VARIABLE))
+		if (matchNextToken(TokenType.VARIABLE))
 			return new Node.VariableNameNode(getPreviousToken(), getPreviousToken().lexeme);
 
-		if( matchNextToken(TokenType.LEFT_PARENTHESIS)) {
+		if (matchNextToken(TokenType.LEFT_PARENTHESIS)) {
 			Node ex = booleanExpression();
-			consumeToken( TokenType.RIGHT_PARENTHESIS, "Expect ')' after expression");
-			return  ex; // new Node.Grouping(ex);
+			consumeToken(TokenType.RIGHT_PARENTHESIS, "Expect ')' after expression");
+			return ex; // new Node.Grouping(ex);
 		}
 
-		if( matchNextToken(TokenType.LEFT_BRACE)) {
-			Node ex = commandExpression(); 
-			consumeToken( TokenType.RIGHT_BRACE, "Expect '}' after commands");
-			return  ex; // new Node.Grouping(ex);
+		if (matchNextToken(TokenType.LEFT_BRACE)) {
+			Node ex = commandExpression();
+			consumeToken(TokenType.RIGHT_BRACE, "Expect '}' after commands");
+			return ex; // new Node.Grouping(ex);
 		}
 
-		if( matchNextToken(TokenType.IF)) {
+		if (matchNextToken(TokenType.IF)) {
 			Token ifToken = getPreviousToken();
-			// if condition=bexpr then iftrue=cexpr else iffalse = cexpr 
+			// if condition=bexpr then iftrue=cexpr else iffalse = cexpr
 			Node condition = booleanExpression();
 			Node ifTrue = null, ifFalse = null;
-			if( matchNextToken(TokenType.THEN))
+			if (matchNextToken(TokenType.THEN))
 				ifTrue = commandExpression();
-			if( matchNextToken(TokenType.ELSE))
+			if (matchNextToken(TokenType.ELSE))
 				ifFalse = commandExpression();
 			return new Node.IfOperationNode(ifToken, condition, ifTrue, ifFalse);
 		}
 
-		if( matchNextToken(TokenType.WHILE)) {
+		if (matchNextToken(TokenType.WHILE)) {
 			Token whileToken = getPreviousToken();
 			// while condition=bexpr do {whiletrue = cexpr}
 			// while condition=bexpr do whiletrue=cterm
 			Node condition = booleanExpression();
 			Node whileTrue = null;
-			if( matchNextToken(TokenType.DO)) {
-				if( matchNextToken( TokenType.LEFT_BRACE)) {
+			if (matchNextToken(TokenType.DO)) {
+				if (matchNextToken(TokenType.LEFT_BRACE)) {
 					whileTrue = commandExpression();
-					consumeToken( TokenType.RIGHT_BRACE, "Expect '}' after command");
-				}
-				else
+					consumeToken(TokenType.RIGHT_BRACE, "Expect '}' after command");
+				} else
 					whileTrue = commandTerm();
 			}
-			Node whileFalse = new Node.SkipOperationNode( new Token(TokenType.SKIP, "skip", null), "skip");
+			Node whileFalse = new Node.SkipOperationNode(new Token(TokenType.SKIP, "skip", null), "skip");
 			return new Node.WhileOperationNode(whileToken, condition, whileTrue, whileFalse);
 		}
 
-		if( matchNextToken(TokenType.NOT)) {
+		if (matchNextToken(TokenType.NOT)) {
 			// NOT (bexpr) | NOT BOOLEAN
 			Token notToken = getPreviousToken();
 
 			Node ex;
-			if( matchNextToken(TokenType.LEFT_PARENTHESIS)) {
+			if (matchNextToken(TokenType.LEFT_PARENTHESIS)) {
 				ex = booleanExpression();
-				consumeToken( TokenType.RIGHT_PARENTHESIS, "Expect ')' after expression in NOT");
-			}
-			else if( matchNextToken(TokenType.BOOLEAN))
+				consumeToken(TokenType.RIGHT_PARENTHESIS, "Expect ')' after expression in NOT");
+			} else if (matchNextToken(TokenType.BOOLEAN))
 				ex = new Node.BooleanValueNode(getPreviousToken(), Boolean.parseBoolean(getPreviousToken().lexeme));
 			else
 				throw new WhileInterpreterException(getCurrentToken(), "INVALID 'not' SYNTAX");
 
-
 			return new Node.NotOperationNode(notToken, ex);
 		}
-		
-		if( matchNextToken(TokenType.SKIP))
+
+		if (matchNextToken(TokenType.SKIP))
 			return new Node.SkipOperationNode(getPreviousToken(), getPreviousToken().lexeme);
 
-
 		throw new WhileInterpreterException(getCurrentToken(), "INVALID EXPRESSION");
-
-
 
 	}
 
@@ -322,10 +307,19 @@ public class Parser {
 	 */
 	private Token consumeToken(TokenType tt, String msg) throws WhileInterpreterException {
 
+		// try {
 		if (checkCurrentTokenType(tt))
 			return advanceToken();
-
+		// }
+		// catch(WhileInterpreterException e) {
+		// get next stmt and parse
+		// try {
+		// SmallStepInterpreter.interpretCorrectedStatement();
+		// } catch (WhileInterpreterException e) {
 		throw new WhileInterpreterException(getCurrentToken(), msg);
+		// }
+
+		// }
 	}
 
 	/**

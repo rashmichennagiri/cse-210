@@ -120,7 +120,7 @@ public class Lexer {
 		default:
 			if (isDigit(c))
 				getNumberToken();
-			else if (isAlphabet(c)) // either keyword or variable
+			else if (isAlphaNumeric(c)) // either keyword or variable
 				getIdentifierToken();
 
 			else
@@ -204,15 +204,15 @@ public class Lexer {
 	 * @param a
 	 * @return
 	 */
-	private boolean isAlphabet(char a) {
-		return (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z');
+	private boolean isAlphaNumeric(char a) {
+		return (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z') || (a >= '0' && a <= '9');
 	}
 
 	/**
 	 * parses for an identifier token (keyword/variable)
 	 */
 	private void getIdentifierToken() {
-		while (isAlphabet(getCurrentCharacter()))
+		while (isAlphaNumeric(getCurrentCharacter()))
 			updateCurrentCharacter();
 
 		String val = userInput.substring(startIndex, currentIndex);
