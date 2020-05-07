@@ -5,7 +5,7 @@
 
 	<groupId>cse210a</groupId>
 	<artifactId>hw4</artifactId>
-	<version>1</version>
+	<version>while</version>
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>

@@ -4,6 +4,7 @@ import hw4.WhileInterpreter;
 import hw4.WhileInterpreterException;
 import hw4.lexer.Token;
 import hw4.parser.Node;
+import hw4.parser.Node.ArrayNode;
 import hw4.parser.Node.AssignmentOperationNode;
 import hw4.parser.Node.BinaryOperationNode;
 import hw4.parser.Node.BooleanOperationNode;
@@ -69,6 +70,11 @@ public class Interpreter implements Node.Visitor<Object> {
 	public Object visitVariableNameNode(VariableNameNode expression) {
 		// return statesStore.getVariableValue(expression.variableName);
 		return expression.variableName;
+	}
+
+	@Override
+	public Object visitArrayNode(ArrayNode expression) {
+		return expression.arrValue;
 	}
 
 	@Override
@@ -300,11 +306,16 @@ public class Interpreter implements Node.Visitor<Object> {
 
 		Object value = expression.value.accept(this);
 
-		if (!(value instanceof Integer))
-			value = Storage.getVariableValue(value.toString());
+		if (!(value instanceof Integer)) {
 
-		// int value = Integer.parseInt("" + expression.value.accept(this));
-		Storage.defineVariable(varName, (int) value);
+			if (("" + value).contains(","))
+				Storage.defineArray(varName, "" + value);
+			else {
+				value = Storage.getVariableValue(value.toString());
+				Storage.defineVariable(varName, (int) value);
+			}
+		} else
+			Storage.defineVariable(varName, (int) value);
 
 		// 2. remove step -> replace current node with skip
 		// 3. print remaining AST

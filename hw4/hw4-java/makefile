@@ -10,5 +10,5 @@ clean:
 
 install: clean
 	mvn install
-	cp target/hw4-1.jar .
+	cp target/hw4-while.jar .
 	

@@ -15,8 +15,8 @@ public class Lexer {
 
 	private final String userInput; // user input string of characters
 
-	private int startIndex = 0; 	// starting character index of token
-	private int currentIndex = 0; 	// current character index in lexeme
+	private int startIndex = 0; // starting character index of token
+	private int currentIndex = 0; // current character index in lexeme
 
 	private final List<Token> tokens = new ArrayList<Token>();
 
@@ -108,13 +108,19 @@ public class Lexer {
 		case '¬': // ¬ option l
 			addToken(TokenType.NOT);
 			break;
-			
+
 		// comparison operators
 		case '<':
 			addToken(TokenType.LESS_THAN);
 			break;
 		case '=':
 			addToken(TokenType.EQUAL);
+			break;
+
+		// for arrays
+		case '[':
+			getArrayToken();
+			// addToken(TokenType.LEFT_BRACKET);
 			break;
 
 		default:
@@ -208,6 +214,7 @@ public class Lexer {
 		return (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z') || (a >= '0' && a <= '9');
 	}
 
+
 	/**
 	 * parses for an identifier token (keyword/variable)
 	 */
@@ -254,6 +261,20 @@ public class Lexer {
 		default:
 			addToken(TokenType.VARIABLE, val);
 		}
+	}
+	
+	
+	/**
+	 * parses for an array
+	 */
+	private void getArrayToken() {
+		while ( getCurrentCharacter() != ']')
+			updateCurrentCharacter();
+
+		updateCurrentCharacter();
+		
+		addToken( TokenType.ARRAY, userInput.substring(startIndex, currentIndex) );
+
 	}
 
 	/**

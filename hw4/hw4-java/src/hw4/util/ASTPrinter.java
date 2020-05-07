@@ -1,6 +1,7 @@
 package hw4.util;
 
 import hw4.parser.Node;
+import hw4.parser.Node.ArrayNode;
 import hw4.parser.Node.AssignmentOperationNode;
 import hw4.parser.Node.BinaryOperationNode;
 import hw4.parser.Node.BooleanOperationNode;
@@ -101,6 +102,11 @@ public class ASTPrinter implements Node.Visitor<String> {
 	public String visitVariableNameNode(VariableNameNode expression) {
 		return ""+expression.variableName;
 	}
+	
+	@Override
+	public String visitArrayNode(ArrayNode expression) {
+		return ""+expression.arrValue;
+	}
 
 	/**
 	 * 
@@ -153,6 +159,8 @@ public class ASTPrinter implements Node.Visitor<String> {
 
 		return sb.toString();
 	}
+
+
 
 	/*
 	 * public static void main(String[] args) {

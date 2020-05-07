@@ -1,11 +1,11 @@
 load harness
 
 @test "custom-1" {
-  check 'x := [1,2,3]' '{x → [1, 2, 3]}'
+  check 'x := [1,2,3]' '{x → [1,2,3]}'
 }
 
 @test "custom-2" {
-  check 'x := [1,2] ; y := [3,4]' '{x → [1, 2], y → [3, 4]}'
+  check 'x := [1,2] ; y := [3,4]' '{x → [1,2], y → [3,4]}'
 }
 
 @test "custom-3" {

@@ -229,6 +229,12 @@ public class Parser {
 			return ex; // new Node.Grouping(ex);
 		}
 
+		if (matchNextToken(TokenType.ARRAY)) {
+			Token t = getPreviousToken();
+			// String arr[] = t.lexeme.split(",");
+			return new Node.ArrayNode(t, t.lexeme);
+		}
+
 		if (matchNextToken(TokenType.IF)) {
 			Token ifToken = getPreviousToken();
 			// if condition=bexpr then iftrue=cexpr else iffalse = cexpr

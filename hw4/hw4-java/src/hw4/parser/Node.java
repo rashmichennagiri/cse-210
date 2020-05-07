@@ -39,7 +39,8 @@ public abstract class Node {
 		R visitBooleanValueNode(BooleanValueNode expression);
 
 		R visitVariableNameNode(VariableNameNode expression);
-		// R visitGroupingExpression(Grouping expression);
+		
+		R visitArrayNode(ArrayNode expression);
 	}
 
 	/**
@@ -343,12 +344,30 @@ public abstract class Node {
 			return visitor.visitVariableNameNode(this);
 		}
 	}
-
-	/*
+	
+	
+	/**
 	 * array node
 	 * 
-	 * 
+	 * @author rashmichennagiri
 	 */
+	public static class ArrayNode extends Node {
+		
+		public final Token token;
+//		public final int[] arrValue;
+		public final String arrValue;
+
+		ArrayNode(Token t, String arr) {
+			this.token = t;
+			this.arrValue = arr;
+		}
+
+		@Override
+		public <R> R accept(Visitor<R> visitor) {
+			return visitor.visitArrayNode(this);
+		}
+	}
+
 
 	/**
 	 * to delete command node from the given ast

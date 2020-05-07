@@ -36,7 +36,7 @@ public class SmallStepInterpreter {
 
 		// 1. split AST into statements
 		atree = new ASTPrinter().print(ast);
-		System.out.println(atree);
+//		System.out.println(atree);
 
 		String[] arr = atree.split(";");
 		for (String a : arr)
@@ -52,10 +52,10 @@ public class SmallStepInterpreter {
 			Lexer lexer = new Lexer(s);
 			List<Token> tokens = lexer.scanUserInputForTokens();
 
-			System.out.println("\n LIST OF TOKENS:");
-			for (Token t : tokens) {
-				System.out.println(t);
-			}
+//			System.out.println("\n LIST OF TOKENS:");
+//			for (Token t : tokens) {
+//				System.out.println(t);
+//			}
 
 			Parser parser = new Parser(tokens);
 			Node ast2;
@@ -63,8 +63,8 @@ public class SmallStepInterpreter {
 				ast2 = parser.parse();
 
 			} catch (WhileInterpreterException e) {
-				e.printStackTrace();
-				System.out.println("taking next statement");
+//				e.printStackTrace();
+//				System.out.println("taking next statement");
 				mode = 1;
 				continue;
 
@@ -82,7 +82,7 @@ public class SmallStepInterpreter {
 
 			current++;
 
-			System.out.println(results.get(results.size()-1));
+//			System.out.println(results.get(results.size()-1));
 
 		}
 		
