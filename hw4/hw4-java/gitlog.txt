@@ -1,0 +1,77 @@
+commit 91f4961018e653f90922e5b394379782c303002d
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Thu May 7 01:41:55 2020 -0700
+
+    added array handling
+
+commit 98a5d57e8a8eee3fbffb72be59d7cae04c8a2fde
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed May 7 21:46:36 2020 -0700
+
+    completed simple while interpreter in java
+
+commit 23be97e80a4ff9407d032507abf76d98e8ae6825
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed May 6 21:21:13 2020 -0700
+
+    added readme
+
+commit 596b57cc3758737b2683f6bbad69fb18f93f65c7
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed May 6 20:47:58 2020 -0700
+
+    bug fixes
+
+commit db9ebf419fa9931c1a0a04e3dd8f3440266d806b
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed May 6 19:57:42 2020 -0700
+
+    added interpretation for cExp
+
+commit dd0a622ebab4ccce3e3b546cdd2dd1a528775a43
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed May 6 00:33:09 2020 -0700
+
+    added interpretation for aExp and bExp
+
+commit 21ab484ff505f7bf8fa82f4d9e0cbdfe8592285f
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 20:09:36 2020 -0700
+
+    added basic parsing for statements
+
+commit 0708679bb3927822ee368499224fb1ef765ae97b
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 17:28:21 2020 -0700
+
+    generated AST for arith
+
+commit d7f73818bfb40934f61b8f7de916965ce1c73fae
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 15:26:55 2020 -0700
+
+    added visitor pattern for AST
+
+commit 786de63837bca54af0dfbd956893064ad675f041
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 04:09:58 2020 -0700
+
+    tool to generate parser class
+
+commit 1f8e0f9950e12d8246b54a29388bcdc01716b677
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Wed Apr 22 03:10:29 2020 -0700
+
+    started parser code
+
+commit 8a05925582f174730d60483760fab2e5126e3d53
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Tue Apr 21 22:53:25 2020 -0700
+
+    basic lexer for WHILE written in java
+
+commit adc334a4cb10881154e26ebe7d54d479baf90fa6
+Author: RashmiChennagiri <rchennag@ucsc.edu>
+Date:   Tue Apr 21 16:26:41 2020 -0700
+
+    starting hw4, added test files
