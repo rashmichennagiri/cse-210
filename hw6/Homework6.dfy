@@ -14,6 +14,7 @@ ensures length(append(xs,ys)) == length(xs)  +  length(ys)
     case Cons(x, xs') => Cons(x, append(xs', ys))
 }
 
+
 function length<T>(xs:List<T>) : int
 {
     match xs
@@ -22,14 +23,11 @@ function length<T>(xs:List<T>) : int
 }
 
 
-
 function listContains<T>(xs:List<T>, element:T):bool
-// requires element ==  Nil
 {
     match xs
     case Nil => false
-    case Cons(x, xs') => (x==element) || listContains(xs', element)
-	
+    case Cons(x, xs') => (x==element) || listContains(xs', element)	
 }
 
 
@@ -49,24 +47,23 @@ function treeContains<T>(tree:Tree<T>, element:T):bool
 }
 
 
-
 ghost method listContainsAssociative<T>(xs:List<T>,ys:List<T>,element:T)
 ensures listContains(append(xs,ys), element) == ( listContains(xs, element) || listContains(ys, element))
 {
     match(xs)
 
-    case Nil => listContains(ys,element)
+    case Nil => { }
     case Cons(x, xs') => {
         calc {
-            //listContains(append(xs,ys), element);
-            //== listContains( Cons(x, append(xs', ys)), element);
-            //     case Cons(x, xs') => Cons(x, append(xs', ys))
-
-            //== (x==element) || listContains(xs', element) || listContains(ys,element);
+            listContains(append(xs,ys), element);
+            == listContains( Cons(x, append(xs', ys)), element);
+            == ( listContains(xs, element) || listContains(ys, element));
         }
     }
 
 }
+
+
 lemma sameElements<T>(tree:Tree<T>, element:T)
 ensures treeContains(tree, element) <==> listContains(flatten(tree), element)
 {
@@ -87,8 +84,6 @@ ensures treeContains(tree, element) <==> listContains(flatten(tree), element)
                 //   definition of list-contains:  case Cons(x, xs') => (x==element) || listContains(xs', element)
 
             == listContains(flatten(l),element) || listContains(Cons( e, flatten(r)), element) ;
-
-                        //== listContains(Cons(e, flatten(l)),element)  || listContains(Cons( e, flatten(r)), element) ;
             
             == listContains(append(flatten(l), Nil),element) || listContains( append(Cons( e, flatten(r)), Nil), element) ;
 
@@ -96,25 +91,11 @@ ensures treeContains(tree, element) <==> listContains(flatten(tree), element)
             
             == listContains(flatten(l),element) || listContains( append(Cons(e, Nil), flatten(r)), element) ;
 
+            == { listContainsAssociative(flatten(l),append(Cons(e, Nil), flatten(r)), element); }
+            listContains ( append( flatten(l), append(Cons(e, Nil),flatten(r))), element);
 
-            // append( flatten(l), append( flatten(r), Cons(e, Nil) ))
-
-           // == listContains( append( flatten(l), append(flatten(r), Cons(e, Nil) ) ) , element);
-            // == listContains ( flatten(l), element) || listContains( flatten(r), element) || listContains(Cons(e, Nil) , element) ;
-
-            // == listContains(append(flatten(l), flatten(r)), element) || listContains(Cons(e, Nil) , element) ;
-
-            == listContains ( append( flatten(l), append( Cons(e, Nil),flatten(r))), element);
-            == listContains(flatten(tree), element);
-
+           == listContains(flatten(tree), element);
         }
-
-
-        // calc{
-        //     listContains(flatten(tree), element);
-        //     == listContains ( append( flatten(l), append( Cons(e, Nil),flatten(r))), element);
-        // }
     }
-
     }
 }
