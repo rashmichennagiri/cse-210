@@ -37,7 +37,7 @@ function flatten<T>(tree:Tree<T>):List<T>
 {
   match tree
   case Leaf => Nil
-  case Node(l, r, e) => append( flatten(l), append( flatten(r), Cons(e, Nil) ))
+  case Node(l, r, e) => append( flatten(l), append( Cons(e, Nil), flatten(r) ))
 } 
 
 
@@ -60,20 +60,18 @@ ensures treeContains(tree, element) <==> listContains(flatten(tree), element)
             treeContains(tree, element); 
 
             == treeContains( Node(l,r,e), element); 
-                // definition of treeContains: case Node(l, r, e) => treeContains(l, element) || treeContains(r, element) || (e==element)
-
 
             == treeContains(l, element) || treeContains(r, element) || e==element;
+                // definition of treeContains: case Node(l, r, e) => treeContains(l, element) || treeContains(r, element) || (e==element)
 
             == listContains(flatten(l),element) || listContains(flatten(r), element)||  e==element;
-                //   definition of list-contains:  case Cons(x, xs') => (x==element) || listContains(xs', element)
 
             == listContains(flatten(l),element) || listContains(Cons( e, flatten(r)), element)  ;
+                //   definition of list-contains:  case Cons(x, xs') => (x==element) || listContains(xs', element)
 
             == listContains(flatten(l),element) || listContains(Cons( e, flatten(r)), element) ;
 
-            //== listContains(Cons(e, flatten(l)),element)  || listContains(Cons( e, flatten(r)), element) ;
-            
+                        //== listContains(Cons(e, flatten(l)),element)  || listContains(Cons( e, flatten(r)), element) ;
             
             == listContains(append(flatten(l), Nil),element) || listContains( append(Cons( e, flatten(r)), Nil), element) ;
 
@@ -86,11 +84,6 @@ ensures treeContains(tree, element) <==> listContains(flatten(tree), element)
             // definition of append: case Cons(x, xs') => Cons(x, append(xs', ys))
 
             == listContains( append( flatten(l), append(Cons(e, Nil), flatten(r))), element) ;
-
-          // == listContains( append( flatten(l), append(flatten(r), Cons(e, Nil))), element) ;
-
-           // == listContains( append( flatten(l), append( flatten(r), Cons( e, Nil)), element) ;
-
 
             // == listContains( append(append(flatten(l), Nil), append(Cons( e, flatten(r)), Nil) ) , element);
             //== listContains(append( flatten(l), append( flatten(r), Cons(e, Nil) )), element) ;
@@ -107,7 +100,7 @@ ensures treeContains(tree, element) <==> listContains(flatten(tree), element)
 
             // == listContains ( flatten(l), element) || listContains( append( flatten(r), Cons(e, Nil) ), element);
 
-            == listContains ( append( flatten(l), append( flatten(r), Cons(e, Nil) )), element);
+            == listContains ( append( flatten(l), append( Cons(e, Nil),flatten(r))), element);
             == listContains(flatten(tree), element);
 
         }
