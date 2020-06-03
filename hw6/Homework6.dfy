@@ -1,22 +1,13 @@
 
-datatype Tree<T> = Leaf(T) | Node(Tree<T>, Tree<T>, T)
+datatype Tree<T> = Leaf | Node(Tree<T>, Tree<T>, T)
 
 datatype List<T> = Nil | Cons(T, List<T>)
 
-
-/*unction flatten<T>(tree:Tree<T>):List<T>
-{
-  match tree
-  case Leaf(x) => x
-  case Node(l, r, T) => append( flatten(l), flatten(r) )
-}   */
 
 function append<T>(xs:List<T>, ys:List<T>):List<T>
 ensures xs == Nil ==> append(xs,ys) == ys
 ensures ys == Nil ==> append(xs,ys) == xs
 ensures length(append(xs,ys)) == length(xs)  +  length(ys)
-  // decreases xs
-  // ignore blue lines
 {
     match xs
     case Nil => ys
@@ -30,14 +21,10 @@ function length<T>(xs:List<T>) : int
     case Cons(x,xs') => 1 + length(xs')
 }
 
-function treeContains<T>(tree:Tree<T>, element:T):bool
-{
-	match tree
-    case Leaf(x) => (x==element)
-    case Node(l, r, T) => treeContains(l, element) || treeContains(r, element)
-}
+
 
 function listContains<T>(xs:List<T>, element:T):bool
+// requires element ==  Nil
 {
     match xs
     case Nil => false
@@ -45,20 +32,46 @@ function listContains<T>(xs:List<T>, element:T):bool
 	
 }
 
-/*
+
+function flatten<T>(tree:Tree<T>):List<T>
+{
+  match tree
+  case Leaf => Nil
+  case Node(l, r, e) => append( flatten(l), append( flatten(r), Cons(e, Nil) ))
+} 
+
+
+function treeContains<T>(tree:Tree<T>, element:T):bool
+{
+	match tree
+    case Leaf => false
+    case Node(l, r, e) => treeContains(l, element) || treeContains(r, element) || (e==element)
+}
+
+
 lemma sameElements<T>(tree:Tree<T>, element:T)
 ensures treeContains(tree, element) <==> listContains(flatten(tree), element)
 {
-	
+	match (tree){
+    case Leaf => {}
+    case Node(l, r, e) => {
+        calc{
+            treeContains(tree, element); 
+            == treeContains( Node(l,r,e), element); 
+            == treeContains(l, element) || treeContains(r, element) || e==element;
+            == listContains(flatten(l),element) || listContains(flatten(r), element) ||  e==element ;
+
+            // listContains(Cons(e, Nil) , element) ||
+           // == listContains( append( flatten(l), append(flatten(r), Cons(e, Nil) ) ) , element);
+            == listContains ( flatten(l), element) || listContains( flatten(r), element) || listContains(Cons(e, Nil) , element) ;
+
+            == listContains ( flatten(l), element) || listContains( append( flatten(r), Cons(e, Nil) ), element);
+
+            == listContains ( append( flatten(l), append( flatten(r), Cons(e, Nil) )), element);
+            == listContains(flatten(tree), element);
+
+        }
+    }
+
+    }
 }
-
-
-
-method Main()
-{ 
-    var q := append({1,2}, {3,4});
-    assert q == List(){1,2, 3,4};
-    
-}
-
-*/
